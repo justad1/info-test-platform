@@ -1,0 +1,145 @@
+<!DOCTYPE html>
+{% load static %}
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <title>信息收集渗透测试平台</title>
+  <link rel="stylesheet" href="{% static 'css/normalize.min.css' %}">
+  <link rel="stylesheet" href="{% static 'css/style.css' %}">
+  <script src="{% static 'js/prefixfree.min.js' %}"></script>
+  <script src="https://cdn.bootcdn.net/ajax/libs/jquery/3.6.0/jquery.min.js"></script>
+  <script src="https://cdn.bootcdn.net/ajax/libs/layer/3.5.1/layer.min.js"></script>
+</head>
+<body>
+<!-- partial:index.partial.html -->
+<div id="logo"> 
+  <h1><i>信息收集渗透测试平台</i></h1>
+</div> 
+<section class="stark-login">
+  
+  <form id="loginForm">	
+    <div id="fade-box">
+      <input type="text" name="username" id="username" placeholder="用户名" required>
+      <input type="password" name="password" id="password" placeholder="密码" required>
+      <button type="button" id="loginBtn">登录</button> 
+    </div>
+  </form>
+  <div class="hexagons">
+    <span>&#x2B22;</span>
+    <span>&#x2B22;</span>
+    <span>&#x2B22;</span>
+    <span>&#x2B22;</span>
+    <span>&#x2B22;</span>
+    <span>&#x2B22;</span>
+    <span>&#x2B22;</span>
+    <span>&#x2B22;</span>
+    <span>&#x2B22;</span>
+    <span>&#x2B22;</span>
+    <span>&#x2B22;</span>
+    <span>&#x2B22;</span>
+    <br>
+    <span>&#x2B22;</span>
+    <span>&#x2B22;</span>
+    <span>&#x2B22;</span>
+    <span>&#x2B22;</span>
+    <span>&#x2B22;</span>
+    <span>&#x2B22;</span>
+    <span>&#x2B22;</span>
+    <span>&#x2B22;</span>
+    <span>&#x2B22;</span>
+    <span>&#x2B22;</span>
+    <span>&#x2B22;</span>
+    <br>
+    <span>&#x2B22;</span>
+    <span>&#x2B22;</span>
+    <span>&#x2B22;</span>
+    <span>&#x2B22;</span> 
+    <span>&#x2B22;</span>
+    <span>&#x2B22;</span>
+    <span>&#x2B22;</span>
+    <span>&#x2B22;</span>
+    <span>&#x2B22;</span>
+    <span>&#x2B22;</span>
+    <span>&#x2B22;</span>
+    <span>&#x2B22;</span>
+    
+    <br>
+    <span>&#x2B22;</span>
+    <span>&#x2B22;</span>
+    <span>&#x2B22;</span>
+    <span>&#x2B22;</span>
+    <span>&#x2B22;</span>
+    <span>&#x2B22;</span>
+    <span>&#x2B22;</span>
+    <span>&#x2B22;</span>
+    <span>&#x2B22;</span>
+    <span>&#x2B22;</span>
+    <span>&#x2B22;</span>
+    <br>
+    <span>&#x2B22;</span>
+    <span>&#x2B22;</span>
+    <span>&#x2B22;</span>
+    <span>&#x2B22;</span>
+    <span>&#x2B22;</span>
+    <span>&#x2B22;</span>
+    <span>&#x2B22;</span>
+    <span>&#x2B22;</span>
+    <span>&#x2B22;</span>
+    <span>&#x2B22;</span>
+    <span>&#x2B22;</span>
+    <span>&#x2B22;</span>
+  </div>      
+</section> 
+
+<div id="circle1">
+  <div id="inner-cirlce1">
+    <h2> </h2>
+  </div>
+</div>
+
+<script>
+  $(document).ready(function() {
+    $('#loginBtn').click(function() {
+      var username = $('#username').val();
+      var password = $('#password').val();
+      
+      if (!username || !password) {
+        layer.msg('用户名和密码不能为空', {icon: 2});
+        return;
+      }
+      
+      $.ajax({
+        url: '{% url "login" %}',
+        type: 'POST',
+        contentType: 'application/json',
+        data: JSON.stringify({
+          username: username,
+          password: password
+        }),
+        success: function(response) {
+          if (response.status === 'success') {
+            layer.msg('登录成功，正在跳转...', {icon: 1});
+            setTimeout(function() {
+              window.location.href = '{% url "dashboard" %}';
+            }, 1500);
+          } else {
+            layer.msg(response.message, {icon: 2});
+          }
+        },
+        error: function(xhr) {
+          layer.msg('登录失败，请稍后再试', {icon: 2});
+        }
+      });
+    });
+    
+    // 按回车键提交表单
+    $('#password').keypress(function(e) {
+      if (e.which === 13) {
+        $('#loginBtn').click();
+      }
+    });
+  });
+</script>
+
+</body>
+</html>

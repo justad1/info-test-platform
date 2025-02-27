@@ -1,0 +1,332 @@
+{% extends 'base.html' %}
+
+{% block title %}指纹管理{% endblock %}
+
+{% block page_title %}指纹管理{% endblock %}
+
+{% block content %}
+<div class="layui-fluid">
+    <div class="layui-row layui-col-space15">
+        <div class="layui-col-md12">
+            <div class="layui-card">
+                <div class="layui-card-header">
+                    <div class="layui-row">
+                        <div class="layui-col-md6">
+                            <a href="/manager/fingerprint/category/" class="layui-btn layui-btn-sm layui-btn-primary">
+                                <i class="layui-icon">&#xe62d;</i> 指纹分类管理
+                            </a>
+                        </div>
+                        <div class="layui-col-md6" style="text-align: right;">
+                            <button class="layui-btn layui-btn-sm layui-btn-normal" id="add-fingerprint-btn">
+                                <i class="layui-icon">&#xe654;</i> 添加指纹
+                            </button>
+                        </div>
+                    </div>
+                </div>
+                <div class="layui-card-body">
+                    <!-- 搜索区域 -->
+                    <div class="layui-form layui-form-pane" style="margin-bottom: 20px;">
+                        <div class="layui-row layui-col-space10">
+                            <div class="layui-col-md3">
+                                <div class="layui-form-item">
+                                    <label class="layui-form-label">指纹名称</label>
+                                    <div class="layui-input-block">
+                                        <input type="text" name="name" placeholder="请输入指纹名称" autocomplete="off" class="layui-input">
+                                    </div>
+                                </div>
+                            </div>
+                            <div class="layui-col-md3">
+                                <div class="layui-form-item">
+                                    <label class="layui-form-label">指纹分类</label>
+                                    <div class="layui-input-block">
+                                        <select name="category_id" id="category-select">
+                                            <option value="">全部分类</option>
+                                        </select>
+                                    </div>
+                                </div>
+                            </div>
+                            <div class="layui-col-md2">
+                                <button class="layui-btn" id="search-btn" style="margin-left: 10px;">
+                                    <i class="layui-icon">&#xe615;</i> 搜索
+                                </button>
+                                <button class="layui-btn layui-btn-primary" id="reset-btn">
+                                    <i class="layui-icon">&#xe669;</i> 重置
+                                </button>
+                            </div>
+                        </div>
+                    </div>
+                    
+                    <!-- 表格区域 -->
+                    <table id="fingerprint-table" lay-filter="fingerprint-table"></table>
+                    
+                    <script type="text/html" id="fingerprint-toolbar">
+                        <div class="layui-btn-container">
+                            <button class="layui-btn layui-btn-sm" lay-event="edit"><i class="layui-icon">&#xe642;</i> 编辑</button>
+                            <button class="layui-btn layui-btn-sm layui-btn-danger" lay-event="del"><i class="layui-icon">&#xe640;</i> 删除</button>
+                        </div>
+                    </script>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- 添加/编辑指纹弹窗 -->
+<div id="fingerprint-form-container" style="display: none; padding: 20px;">
+    <form class="layui-form" id="fingerprint-form" lay-filter="fingerprint-form">
+        <input type="hidden" name="id" value="">
+        <div class="layui-form-item">
+            <label class="layui-form-label">指纹名称</label>
+            <div class="layui-input-block">
+                <input type="text" name="name" required lay-verify="required" placeholder="请输入指纹名称" autocomplete="off" class="layui-input">
+            </div>
+        </div>
+        <div class="layui-form-item">
+            <label class="layui-form-label">所属分类</label>
+            <div class="layui-input-block">
+                <select name="category_id" lay-verify="required" id="form-category-select">
+                    <option value="">请选择分类</option>
+                </select>
+            </div>
+        </div>
+        <div class="layui-form-item">
+            <label class="layui-form-label">匹配规则</label>
+            <div class="layui-input-block">
+                <input type="text" name="rule" required lay-verify="required" placeholder="请输入匹配规则" autocomplete="off" class="layui-input">
+            </div>
+        </div>
+        <div class="layui-form-item">
+            <label class="layui-form-label">匹配位置</label>
+            <div class="layui-input-block">
+                <select name="position" lay-verify="required">
+                    <option value="">请选择匹配位置</option>
+                    <option value="header">HTTP头部</option>
+                    <option value="body">响应体</option>
+                    <option value="url">URL</option>
+                    <option value="all">全部</option>
+                </select>
+            </div>
+        </div>
+        <div class="layui-form-item">
+            <label class="layui-form-label">指纹描述</label>
+            <div class="layui-input-block">
+                <textarea name="description" placeholder="请输入指纹描述" class="layui-textarea"></textarea>
+            </div>
+        </div>
+        <div class="layui-form-item">
+            <div class="layui-input-block">
+                <button class="layui-btn" lay-submit lay-filter="fingerprint-submit">提交</button>
+                <button type="reset" class="layui-btn layui-btn-primary">重置</button>
+            </div>
+        </div>
+    </form>
+</div>
+{% endblock %}
+
+{% block scripts %}
+<script>
+layui.use(['table', 'form', 'jquery', 'layer'], function(){
+    var table = layui.table;
+    var form = layui.form;
+    var $ = layui.jquery;
+    var layer = layui.layer;
+    
+    // 加载指纹分类数据
+    function loadCategories() {
+        $.ajax({
+            url: '/manager/api/fingerprint/categories/',
+            type: 'GET',
+            data: {
+                page: 1,
+                limit: 1000  // 获取所有分类
+            },
+            success: function(res) {
+                if(res.code === 200) {
+                    var options = '<option value="">全部分类</option>';
+                    var formOptions = '<option value="">请选择分类</option>';
+                    
+                    $.each(res.data, function(index, item) {
+                        options += '<option value="' + item.id + '">' + item.name + '</option>';
+                        formOptions += '<option value="' + item.id + '">' + item.name + '</option>';
+                    });
+                    
+                    $('#category-select').html(options);
+                    $('#form-category-select').html(formOptions);
+                    form.render('select');
+                }
+            }
+        });
+    }
+    
+    // 初始化加载分类
+    loadCategories();
+    
+    // 初始化表格
+    table.render({
+        elem: '#fingerprint-table',
+        url: '/manager/api/fingerprint/',  // 后端API接口
+        page: true,
+        cols: [[
+            {field: 'id', title: 'ID', width: 80, sort: true},
+            {field: 'name', title: '指纹名称', width: 150},
+            {field: 'category_name', title: '所属分类', width: 120},
+            {field: 'rule', title: '匹配规则', width: 200},
+            {field: 'position', title: '匹配位置', width: 100, templet: function(d) {
+                var positions = {
+                    'header': 'HTTP头部',
+                    'body': '响应体',
+                    'url': 'URL',
+                    'all': '全部'
+                };
+                return positions[d.position] || d.position;
+            }},
+            {field: 'description', title: '描述'},
+            {field: 'create_time', title: '创建时间', width: 180, sort: true},
+            {fixed: 'right', title: '操作', toolbar: '#fingerprint-toolbar', width: 150}
+        ]],
+        response: {
+            statusCode: 200
+        },
+        parseData: function(res){
+            return {
+                "code": res.code,
+                "msg": res.msg,
+                "count": res.count,
+                "data": res.data
+            };
+        }
+    });
+    
+    // 搜索按钮事件
+    $('#search-btn').on('click', function() {
+        var name = $('input[name="name"]').val();
+        var category_id = $('#category-select').val();
+        
+        table.reload('fingerprint-table', {
+            where: {
+                name: name,
+                category_id: category_id
+            },
+            page: {
+                curr: 1
+            }
+        });
+    });
+    
+    // 重置按钮事件
+    $('#reset-btn').on('click', function() {
+        $('input[name="name"]').val('');
+        $('#category-select').val('');
+        form.render('select');
+        
+        table.reload('fingerprint-table', {
+            where: {
+                name: '',
+                category_id: ''
+            },
+            page: {
+                curr: 1
+            }
+        });
+    });
+    
+    // 表格工具条事件
+    table.on('tool(fingerprint-table)', function(obj){
+        var data = obj.data;
+        if(obj.event === 'edit'){
+            // 编辑指纹
+            form.val('fingerprint-form', {
+                "id": data.id,
+                "name": data.name,
+                "category_id": data.category_id,
+                "rule": data.rule,
+                "position": data.position,
+                "description": data.description
+            });
+            
+            layer.open({
+                type: 1,
+                title: '编辑指纹',
+                content: $('#fingerprint-form-container'),
+                area: ['600px', '500px'],
+                success: function(){
+                    form.render();
+                }
+            });
+        } else if(obj.event === 'del'){
+            // 删除指纹
+            layer.confirm('确定要删除该指纹吗？', function(index){
+                $.ajax({
+                    url: '/manager/api/fingerprint/' + data.id + '/',
+                    type: 'DELETE',
+                    contentType: 'application/json',
+                    success: function(res){
+                        if(res.code === 200){
+                            layer.msg('删除成功');
+                            obj.del();
+                        } else {
+                            layer.msg('删除失败：' + res.msg);
+                        }
+                    },
+                    error: function(){
+                        layer.msg('删除请求失败，请检查网络');
+                    }
+                });
+                layer.close(index);
+            });
+        }
+    });
+    
+    // 添加指纹按钮事件
+    $('#add-fingerprint-btn').on('click', function(){
+        // 重置表单
+        $('#fingerprint-form')[0].reset();
+        $('input[name="id"]').val('');
+        
+        layer.open({
+            type: 1,
+            title: '添加指纹',
+            content: $('#fingerprint-form-container'),
+            area: ['600px', '500px'],
+            success: function(){
+                form.render();
+            }
+        });
+    });
+    
+    // 表单提交事件
+    form.on('submit(fingerprint-submit)', function(data){
+        var formData = data.field;
+        var url = '/manager/api/fingerprint/';
+        var type = 'POST';
+        
+        // 如果有ID，则为编辑操作
+        if(formData.id){
+            url += formData.id + '/';
+            type = 'PUT';
+        }
+        
+        $.ajax({
+            url: url,
+            type: type,
+            contentType: 'application/json',
+            data: JSON.stringify(formData),
+            success: function(res){
+                if(res.code === 200){
+                    layer.closeAll('page');
+                    layer.msg('操作成功');
+                    table.reload('fingerprint-table');
+                } else {
+                    layer.msg('操作失败：' + res.msg);
+                }
+            },
+            error: function(){
+                layer.msg('请求失败，请检查网络');
+            }
+        });
+        
+        return false;  // 阻止表单跳转
+    });
+});
+</script>
+{% endblock %}

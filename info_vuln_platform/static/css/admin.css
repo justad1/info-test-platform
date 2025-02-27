@@ -1,0 +1,104 @@
+/* 自定义管理后台样式 */
+.layui-layout-admin .layui-logo {
+  color: #fff;
+  font-size: 18px;
+}
+
+.layui-card {
+  margin-bottom: 15px;
+}
+
+.layui-card-header {
+  font-size: 16px;
+  font-weight: bold;
+}
+
+.layui-table-tool {
+  padding: 10px 0;
+}
+
+.layui-btn-container {
+  margin-bottom: 10px;
+}
+
+.layui-form-label {
+  width: 100px;
+}
+
+.layui-input-block {
+  margin-left: 130px;
+}
+
+.layui-table-page {
+  text-align: center;
+}
+
+/* 表格内操作按钮样式 */
+.table-action-btn {
+  margin-right: 5px;
+}
+
+/* 弹窗表单样式 */
+.popup-form {
+  padding: 20px 30px 0 0;
+}
+
+/* 搜索表单样式 */
+.search-form {
+  margin-bottom: 15px;
+}
+
+/* 状态标签样式 */
+.status-tag {
+  padding: 2px 5px;
+  border-radius: 2px;
+  font-size: 12px;
+}
+
+.status-active {
+  background-color: #5FB878;
+  color: #fff;
+}
+
+.status-inactive {
+  background-color: #FF5722;
+  color: #fff;
+}
+
+.status-admin {
+  background-color: #1E9FFF;
+  color: #fff;
+}
+
+.status-user {
+  background-color: #FFB800;
+  color: #fff;
+}
+
+/* 表格内容居中 */
+.layui-table-cell {
+  text-align: center;
+}
+
+/* 表格操作列样式 */
+.layui-table-cell .layui-btn-xs {
+  height: 22px;
+  line-height: 22px;
+  padding: 0 5px;
+  font-size: 12px;
+}
+
+/* 自定义图标样式 */
+.custom-icon {
+  margin-right: 5px;
+}
+
+/* 响应式调整 */
+@media screen and (max-width: 768px) {
+  .layui-form-label {
+    width: 80px;
+  }
+  .layui-input-block {
+    margin-left: 110px;
+  }
+}

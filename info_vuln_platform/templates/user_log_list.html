@@ -1,0 +1,105 @@
+{% extends 'base.html' %}
+
+{% block title %}用户日志列表{% endblock %}
+
+{% block content %}
+<div class="layui-fluid">
+    <div class="layui-card">
+        <div class="layui-card-header">用户日志列表</div>
+        <div class="layui-card-body">
+            <div class="layui-form layui-row layui-col-space15">
+                <div class="layui-col-md12">
+                    <div class="layui-inline">
+                        <label class="layui-form-label">用户ID：</label>
+                        <div class="layui-input-inline">
+                            <input type="text" name="user_id" id="user_id" placeholder="请输入用户ID" autocomplete="off" class="layui-input">
+                        </div>
+                    </div>
+                    <div class="layui-inline">
+                        <button class="layui-btn" id="search-btn" lay-submit lay-filter="search-btn">
+                            <i class="layui-icon layui-icon-search"></i> 搜索
+                        </button>
+                        <button class="layui-btn layui-btn-primary" id="reset-btn">
+                            <i class="layui-icon layui-icon-refresh"></i> 重置
+                        </button>
+                    </div>
+                </div>
+            </div>
+            
+            <table id="log-table" lay-filter="log-table"></table>
+        </div>
+    </div>
+</div>
+{% endblock %}
+
+{% block scripts %}
+<script>
+    layui.use(['table', 'form', 'layer', 'util'], function() {
+        var table = layui.table;
+        var form = layui.form;
+        var layer = layui.layer;
+        var util = layui.util;
+        
+        // 渲染表格
+        var logTable = table.render({
+            elem: '#log-table',
+            url: '/manager/api/logs/',
+            page: true,
+            limit: 10,
+            limits: [10, 20, 50, 100],
+            cols: [[
+                {field: 'id', title: 'ID', width: 80, sort: true},
+                {field: 'user_id', title: '用户ID', width: 100, sort: true},
+                {field: 'username', title: '用户名', width: 120},
+                {field: 'action', title: '操作类型', width: 120},
+                {field: 'ip', title: 'IP地址', width: 150},
+                {field: 'details', title: '详细信息', width: 300},
+                {field: 'created_at', title: '操作时间', width: 180, sort: true}
+            ]],
+            response: {
+                statusCode: 200
+            },
+            parseData: function(res) {
+                return {
+                    "code": res.code,
+                    "msg": res.message,
+                    "count": res.count,
+                    "data": res.data
+                };
+            }
+        });
+        
+        // 搜索按钮点击事件
+        form.on('submit(search-btn)', function(data) {
+            var user_id = data.field.user_id;
+            
+            // 重载表格
+            logTable.reload({
+                where: {
+                    user_id: user_id
+                },
+                page: {
+                    curr: 1
+                }
+            });
+            
+            return false;
+        });
+        
+        // 重置按钮点击事件
+        $('#reset-btn').on('click', function() {
+            $('#user_id').val('');
+            
+            // 重载表格
+            logTable.reload({
+                where: {
+                    user_id: ''
+                },
+                page: {
+                    curr: 1
+                }
+            });
+        });
+    });
+</script>
+{% endblock %}

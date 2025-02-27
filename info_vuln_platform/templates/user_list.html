@@ -1,0 +1,448 @@
+{% extends 'base.html' %}
+{% load static %}
+
+{% block page_title %}用户管理{% endblock %}
+
+{% block content %}
+<!-- 搜索栏 -->
+<div class="layui-form search-form">
+  <div class="layui-form-item">
+    <div class="layui-inline">
+      <label class="layui-form-label">用户名</label>
+      <div class="layui-input-inline">
+        <input type="text" name="username" placeholder="请输入用户名" autocomplete="off" class="layui-input">
+      </div>
+    </div>
+    <div class="layui-inline">
+      <label class="layui-form-label">状态</label>
+      <div class="layui-input-inline">
+        <select name="status">
+          <option value="">全部</option>
+          <option value="1">启用</option>
+          <option value="0">禁用</option>
+        </select>
+      </div>
+    </div>
+    <div class="layui-inline">
+      <button class="layui-btn" lay-submit lay-filter="user-search">
+        <i class="layui-icon layui-icon-search"></i> 搜索
+      </button>
+      <button type="reset" class="layui-btn layui-btn-primary">重置</button>
+    </div>
+  </div>
+</div>
+
+<!-- 表格工具栏 -->
+<div class="layui-btn-container">
+  <button class="layui-btn layui-btn-sm" id="add-user-btn">
+    <i class="layui-icon layui-icon-add-1"></i> 添加用户
+  </button>
+  <button class="layui-btn layui-btn-sm layui-btn-danger" id="batch-delete-btn">
+    <i class="layui-icon layui-icon-delete"></i> 批量删除
+  </button>
+  <button class="layui-btn layui-btn-sm layui-btn-normal" id="refresh-btn">
+    <i class="layui-icon layui-icon-refresh"></i> 刷新
+  </button>
+</div>
+
+<!-- 用户表格 -->
+<table id="user-table" lay-filter="user-table"></table>
+
+<!-- 表格操作列模板 -->
+<script type="text/html" id="table-operation">
+  <a class="layui-btn layui-btn-xs" lay-event="edit">编辑</a>
+  <a class="layui-btn layui-btn-xs layui-btn-danger" lay-event="delete">删除</a>
+  {% verbatim %}
+  {{# if(d.is_active){ }}
+  <a class="layui-btn layui-btn-xs layui-btn-warm" lay-event="disable">禁用</a>
+  {{# } else { }}
+  <a class="layui-btn layui-btn-xs layui-btn-normal" lay-event="enable">启用</a>
+  {{# } }}
+  {% endverbatim %}
+  <a class="layui-btn layui-btn-xs layui-btn-primary" lay-event="logs">日志</a>
+</script>
+
+<!-- 用户状态模板 -->
+<script type="text/html" id="statusTpl">
+  {% verbatim %}
+  {{# if(d.is_active){ }}
+  <span class="status-tag status-active">启用</span>
+  {{# } else { }}
+  <span class="status-tag status-inactive">禁用</span>
+  {{# } }}
+  {% endverbatim %}
+</script>
+
+<!-- 用户角色模板 -->
+<script type="text/html" id="roleTpl">
+  {% verbatim %}
+  {{# if(d.is_admin){ }}
+  <span class="status-tag status-admin">管理员</span>
+  {{# } else { }}
+  <span class="status-tag status-user">普通用户</span>
+  {{# } }}
+  {% endverbatim %}
+</script>
+
+<!-- 添加/编辑用户表单 -->
+<script type="text/html" id="user-form">
+  <form class="layui-form popup-form" lay-filter="user-form" style="margin-top: 20px;">
+    <input type="hidden" name="id">
+    <div class="layui-form-item">
+      <label class="layui-form-label">用户名</label>
+      <div class="layui-input-block">
+        <input type="text" name="username" lay-verify="required" placeholder="请输入用户名" autocomplete="off" class="layui-input">
+      </div>
+    </div>
+    <div class="layui-form-item">
+      <label class="layui-form-label">密码</label>
+      <div class="layui-input-block">
+        <input type="password" name="password" placeholder="请输入密码" autocomplete="off" class="layui-input">
+        <div class="layui-form-mid layui-word-aux">编辑时不填则不修改密码</div>
+      </div>
+    </div>
+    <div class="layui-form-item">
+      <label class="layui-form-label">邮箱</label>
+      <div class="layui-input-block">
+        <input type="text" name="email" placeholder="请输入邮箱" autocomplete="off" class="layui-input">
+      </div>
+    </div>
+    <div class="layui-form-item">
+      <label class="layui-form-label">是否管理员</label>
+      <div class="layui-input-block">
+        <input type="checkbox" name="is_admin" lay-skin="switch" lay-text="是|否">
+      </div>
+    </div>
+    <div class="layui-form-item">
+      <label class="layui-form-label">状态</label>
+      <div class="layui-input-block">
+        <input type="checkbox" name="is_active" lay-skin="switch" lay-text="启用|禁用" checked>
+      </div>
+    </div>
+    <div class="layui-form-item">
+      <div class="layui-input-block">
+        <button class="layui-btn" lay-submit lay-filter="user-submit">提交</button>
+        <button type="reset" class="layui-btn layui-btn-primary">重置</button>
+      </div>
+    </div>
+  </form>
+</script>
+
+<!-- 用户日志表格 -->
+<script type="text/html" id="user-logs">
+  <div style="padding: 15px;">
+    <table id="user-logs-table" lay-filter="user-logs-table"></table>
+  </div>
+</script>
+{% endblock %}
+
+{% block scripts %}
+<script>
+layui.use(['table', 'form', 'layer', 'util'], function(){
+  var table = layui.table;
+  var form = layui.form;
+  var layer = layui.layer;
+  var util = layui.util;
+  var $ = layui.jquery;
+  
+  // 渲染用户表格
+  var userTable = table.render({
+    elem: '#user-table',
+    url: '/manager/api/users/',
+    method: 'get',
+    page: true,
+    limit: 10,
+    limits: [10, 20, 50, 100],
+    cols: [[
+      {type: 'checkbox', fixed: 'left'},
+      {field: 'id', title: 'ID', width: 80, sort: true},
+      {field: 'username', title: '用户名', width: 150},
+      {field: 'email', title: '邮箱', width: 200},
+      {field: 'is_admin', title: '角色', width: 100, templet: '#roleTpl'},
+      {field: 'is_active', title: '状态', width: 100, templet: '#statusTpl'},
+      {field: 'created_at', title: '创建时间', width: 180, sort: true},
+      {field: 'last_login', title: '最后登录', width: 180, sort: true},
+      {fixed: 'right', title: '操作', toolbar: '#table-operation', width: 250}
+    ]],
+    response: {
+      statusCode: 200
+    },
+    parseData: function(res){
+      return {
+        "code": res.code,
+        "msg": res.message,
+        "count": res.count,
+        "data": res.data
+      };
+    }
+  });
+  
+  // 表格操作列事件
+  table.on('tool(user-table)', function(obj){
+    var data = obj.data;
+    var event = obj.event;
+    
+    if(event === 'edit'){
+      // 编辑用户
+      editUser(data);
+    } else if(event === 'delete'){
+      // 删除用户
+      layer.confirm('确定要删除该用户吗？', function(index){
+        deleteUser(data.id);
+        layer.close(index);
+      });
+    } else if(event === 'disable'){
+      // 禁用用户
+      layer.confirm('确定要禁用该用户吗？', function(index){
+        toggleUserActive(data.id, false);
+        layer.close(index);
+      });
+    } else if(event === 'enable'){
+      // 启用用户
+      layer.confirm('确定要启用该用户吗？', function(index){
+        toggleUserActive(data.id, true);
+        layer.close(index);
+      });
+    } else if(event === 'logs'){
+      // 查看用户日志
+      viewUserLogs(data.id, data.username);
+    }
+  });
+  
+  // 搜索表单提交事件
+  form.on('submit(user-search)', function(data){
+    userTable.reload({
+      where: data.field,
+      page: {
+        curr: 1
+      }
+    });
+    return false;
+  });
+  
+  // 添加用户按钮点击事件
+  $('#add-user-btn').on('click', function(){
+    addUser();
+  });
+  
+  // 批量删除按钮点击事件
+  $('#batch-delete-btn').on('click', function(){
+    var checkStatus = table.checkStatus('user-table');
+    var data = checkStatus.data;
+    if(data.length === 0){
+      layer.msg('请选择要删除的用户');
+      return;
+    }
+    
+    var ids = data.map(function(item){
+      return item.id;
+    });
+    
+    layer.confirm('确定要删除选中的 ' + data.length + ' 个用户吗？', function(index){
+      batchDeleteUsers(ids);
+      layer.close(index);
+    });
+  });
+  
+  // 刷新按钮点击事件
+  $('#refresh-btn').on('click', function(){
+    userTable.reload();
+  });
+  
+  // 添加用户
+  function addUser(){
+    layer.open({
+      type: 1,
+      title: '添加用户',
+      area: ['500px', '450px'],
+      content: $('#user-form').html(),
+      success: function(){
+        form.render();
+        // 设置默认值
+        form.val('user-form', {
+          is_active: true
+        });
+      }
+    });
+    
+    // 表单提交
+    form.on('submit(user-submit)', function(data){
+      createUser(data.field);
+      return false;
+    });
+  }
+  
+  // 编辑用户
+  function editUser(userData){
+    layer.open({
+      type: 1,
+      title: '编辑用户',
+      area: ['500px', '450px'],
+      content: $('#user-form').html(),
+      success: function(){
+        // 填充表单数据
+        form.val('user-form', {
+          id: userData.id,
+          username: userData.username,
+          email: userData.email,
+          is_admin: userData.is_admin,
+          is_active: userData.is_active
+        });
+        form.render();
+      }
+    });
+    
+    // 表单提交
+    form.on('submit(user-submit)', function(data){
+      updateUser(userData.id, data.field);
+      return false;
+    });
+  }
+  
+  // 创建用户
+  function createUser(userData){
+    $.ajax({
+      url: '/manager/api/users/',
+      type: 'POST',
+      contentType: 'application/json',
+      data: JSON.stringify(userData),
+      success: function(res){
+        if(res.code === 200){
+          layer.closeAll('page');
+          layer.msg('添加成功');
+          userTable.reload();
+        }else{
+          layer.msg(res.message || '添加失败');
+        }
+      },
+      error: function(){
+        layer.msg('服务器错误');
+      }
+    });
+  }
+  
+  // 更新用户
+  function updateUser(id, userData){
+    $.ajax({
+      url: '/manager/api/users/' + id + '/',
+      type: 'PUT',
+      contentType: 'application/json',
+      data: JSON.stringify(userData),
+      success: function(res){
+        if(res.code === 200){
+          layer.closeAll('page');
+          layer.msg('更新成功');
+          userTable.reload();
+        }else{
+          layer.msg(res.message || '更新失败');
+        }
+      },
+      error: function(){
+        layer.msg('服务器错误');
+      }
+    });
+  }
+  
+  // 删除用户
+  function deleteUser(id){
+    $.ajax({
+      url: '/manager/api/users/' + id + '/',
+      type: 'DELETE',
+      success: function(res){
+        if(res.code === 200){
+          layer.msg('删除成功');
+          userTable.reload();
+        }else{
+          layer.msg(res.message || '删除失败');
+        }
+      },
+      error: function(){
+        layer.msg('服务器错误');
+      }
+    });
+  }
+  
+  // 批量删除用户
+  function batchDeleteUsers(ids){
+    $.ajax({
+      url: '/manager/api/users/batch_delete/',
+      type: 'POST',
+      contentType: 'application/json',
+      data: JSON.stringify({ids: ids}),
+      success: function(res){
+        if(res.code === 200){
+          layer.msg('删除成功');
+          userTable.reload();
+        }else{
+          layer.msg(res.message || '删除失败');
+        }
+      },
+      error: function(){
+        layer.msg('服务器错误');
+      }
+    });
+  }
+  
+  // 切换用户状态
+  function toggleUserActive(id, isActive){
+    $.ajax({
+      url: '/manager/api/users/' + id + '/toggle_active/',
+      type: 'POST',
+      contentType: 'application/json',
+      data: JSON.stringify({is_active: isActive}),
+      success: function(res){
+        if(res.code === 200){
+          layer.msg(isActive ? '启用成功' : '禁用成功');
+          userTable.reload();
+        }else{
+          layer.msg(res.message || (isActive ? '启用失败' : '禁用失败'));
+        }
+      },
+      error: function(){
+        layer.msg('服务器错误');
+      }
+    });
+  }
+  
+  // 查看用户日志
+  function viewUserLogs(userId, username){
+    layer.open({
+      type: 1,
+      title: '用户 ' + username + ' 的操作日志',
+      area: ['800px', '600px'],
+      content: $('#user-logs').html(),
+      success: function(){
+        // 渲染日志表格
+        table.render({
+          elem: '#user-logs-table',
+          url: '/manager/api/logs/',
+          where: {
+            user_id: userId
+          },
+          page: true,
+          limit: 10,
+          cols: [[
+            {field: 'id', title: 'ID', width: 60},
+            {field: 'action', title: '操作类型', width: 100},
+            {field: 'ip', title: 'IP地址', width: 120},
+            {field: 'details', title: '详细信息', width: 300},
+            {field: 'created_at', title: '操作时间', width: 180}
+          ]],
+          response: {
+            statusCode: 200
+          },
+          parseData: function(res){
+            return {
+              "code": res.code,
+              "msg": res.message,
+              "count": res.count,
+              "data": res.data
+            };
+          }
+        });
+      }
+    });
+  }
+});
+</script>
+{% endblock %}

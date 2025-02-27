@@ -1,0 +1,189 @@
+{% extends 'base.html' %}
+
+{% block title %}POC分类管理{% endblock %}
+
+{% block page_title %}POC分类管理{% endblock %}
+
+{% block content %}
+<div class="layui-fluid">
+    <div class="layui-row layui-col-space15">
+        <div class="layui-col-md12">
+            <div class="layui-card">
+                <div class="layui-card-header">
+                    POC分类列表
+                    <button class="layui-btn layui-btn-sm layui-btn-normal" style="float: right;" id="add-category-btn">
+                        <i class="layui-icon">&#xe654;</i> 添加分类
+                    </button>
+                </div>
+                <div class="layui-card-body">
+                    <table id="category-table" lay-filter="category-table"></table>
+                    
+                    <script type="text/html" id="category-toolbar">
+                        <div class="layui-btn-container">
+                            <button class="layui-btn layui-btn-sm" lay-event="edit"><i class="layui-icon">&#xe642;</i> 编辑</button>
+                            <button class="layui-btn layui-btn-sm layui-btn-danger" lay-event="del"><i class="layui-icon">&#xe640;</i> 删除</button>
+                        </div>
+                    </script>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- 添加/编辑分类弹窗 -->
+<div id="category-form-container" style="display: none; padding: 20px;">
+    <form class="layui-form" id="category-form" lay-filter="category-form">
+        <input type="hidden" name="id" value="">
+        <div class="layui-form-item">
+            <label class="layui-form-label">分类名称</label>
+            <div class="layui-input-block">
+                <input type="text" name="name" required lay-verify="required" placeholder="请输入分类名称" autocomplete="off" class="layui-input">
+            </div>
+        </div>
+        <div class="layui-form-item">
+            <label class="layui-form-label">分类描述</label>
+            <div class="layui-input-block">
+                <textarea name="description" placeholder="请输入分类描述" class="layui-textarea"></textarea>
+            </div>
+        </div>
+        <div class="layui-form-item">
+            <div class="layui-input-block">
+                <button class="layui-btn" lay-submit lay-filter="category-submit">提交</button>
+                <button type="reset" class="layui-btn layui-btn-primary">重置</button>
+            </div>
+        </div>
+    </form>
+</div>
+{% endblock %}
+
+{% block scripts %}
+<script>
+layui.use(['table', 'form', 'jquery', 'layer'], function(){
+    var table = layui.table;
+    var form = layui.form;
+    var $ = layui.jquery;
+    var layer = layui.layer;
+    
+    // 初始化表格
+    table.render({
+        elem: '#category-table',
+        url: '/manager/api/poc/categories/',  // 后端API接口
+        page: true,
+        cols: [[
+            {field: 'id', title: 'ID', width: 80, sort: true},
+            {field: 'name', title: '分类名称', width: 150},
+            {field: 'description', title: '分类描述'},
+            {field: 'create_time', title: '创建时间', width: 180, sort: true},
+            {field: 'update_time', title: '更新时间', width: 180, sort: true},
+            {fixed: 'right', title: '操作', toolbar: '#category-toolbar', width: 150}
+        ]],
+        response: {
+            statusCode: 200
+        },
+        parseData: function(res){
+            return {
+                "code": res.code,
+                "msg": res.msg,
+                "count": res.count,
+                "data": res.data
+            };
+        }
+    });
+    
+    // 表格工具条事件
+    table.on('tool(category-table)', function(obj){
+        var data = obj.data;
+        if(obj.event === 'edit'){
+            // 编辑分类
+            form.val('category-form', {
+                "id": data.id,
+                "name": data.name,
+                "description": data.description
+            });
+            
+            layer.open({
+                type: 1,
+                title: '编辑POC分类',
+                content: $('#category-form-container'),
+                area: ['500px', '300px'],
+                success: function(){
+                    form.render();
+                }
+            });
+        } else if(obj.event === 'del'){
+            // 删除分类
+            layer.confirm('确定要删除该分类吗？', function(index){
+                $.ajax({
+                    url: '/manager/api/poc/categories/' + data.id + '/',
+                    type: 'DELETE',
+                    contentType: 'application/json',
+                    success: function(res){
+                        if(res.code === 200){
+                            layer.msg('删除成功');
+                            obj.del();
+                        } else {
+                            layer.msg('删除失败：' + res.msg);
+                        }
+                    },
+                    error: function(){
+                        layer.msg('删除请求失败，请检查网络');
+                    }
+                });
+                layer.close(index);
+            });
+        }
+    });
+    
+    // 添加分类按钮事件
+    $('#add-category-btn').on('click', function(){
+        // 重置表单
+        $('#category-form')[0].reset();
+        $('input[name="id"]').val('');
+        
+        layer.open({
+            type: 1,
+            title: '添加POC分类',
+            content: $('#category-form-container'),
+            area: ['500px', '300px'],
+            success: function(){
+                form.render();
+            }
+        });
+    });
+    
+    // 表单提交事件
+    form.on('submit(category-submit)', function(data){
+        var formData = data.field;
+        var url = '/manager/api/poc/categories/';
+        var type = 'POST';
+        
+        // 如果有ID，则为编辑操作
+        if(formData.id){
+            url += formData.id + '/';
+            type = 'PUT';
+        }
+        
+        $.ajax({
+            url: url,
+            type: type,
+            contentType: 'application/json',
+            data: JSON.stringify(formData),
+            success: function(res){
+                if(res.code === 200){
+                    layer.closeAll('page');
+                    layer.msg('操作成功');
+                    table.reload('category-table');
+                } else {
+                    layer.msg('操作失败：' + res.msg);
+                }
+            },
+            error: function(){
+                layer.msg('请求失败，请检查网络');
+            }
+        });
+        
+        return false;  // 阻止表单跳转
+    });
+});
+</script>
+{% endblock %}

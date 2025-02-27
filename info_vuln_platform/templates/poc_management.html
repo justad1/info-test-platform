@@ -1,0 +1,362 @@
+{% extends 'base.html' %}
+
+{% block title %}POC管理{% endblock %}
+
+{% block page_title %}POC管理{% endblock %}
+
+{% block content %}
+<div class="layui-fluid">
+    <div class="layui-row layui-col-space15">
+        <div class="layui-col-md12">
+            <div class="layui-card">
+                <div class="layui-card-header">
+                    <div class="layui-row">
+                        <div class="layui-col-md6">
+                            <a href="/manager/poc/category/" class="layui-btn layui-btn-sm layui-btn-primary">
+                                <i class="layui-icon">&#xe62d;</i> POC分类管理
+                            </a>
+                        </div>
+                        <div class="layui-col-md6" style="text-align: right;">
+                            <button class="layui-btn layui-btn-sm layui-btn-normal" id="add-poc-btn">
+                                <i class="layui-icon">&#xe654;</i> 添加POC
+                            </button>
+                        </div>
+                    </div>
+                </div>
+                <div class="layui-card-body">
+                    <!-- 搜索区域 -->
+                    <div class="layui-form layui-form-pane" style="margin-bottom: 20px;">
+                        <div class="layui-row layui-col-space10">
+                            <div class="layui-col-md3">
+                                <div class="layui-form-item">
+                                    <label class="layui-form-label">POC名称</label>
+                                    <div class="layui-input-block">
+                                        <input type="text" name="name" placeholder="请输入POC名称" autocomplete="off" class="layui-input">
+                                    </div>
+                                </div>
+                            </div>
+                            <div class="layui-col-md3">
+                                <div class="layui-form-item">
+                                    <label class="layui-form-label">POC分类</label>
+                                    <div class="layui-input-block">
+                                        <select name="category_id" id="category-select">
+                                            <option value="">全部分类</option>
+                                        </select>
+                                    </div>
+                                </div>
+                            </div>
+                            <div class="layui-col-md2">
+                                <div class="layui-form-item">
+                                    <label class="layui-form-label">危害等级</label>
+                                    <div class="layui-input-block">
+                                        <select name="severity" id="severity-select">
+                                            <option value="">全部等级</option>
+                                            <option value="info">信息</option>
+                                            <option value="low">低危</option>
+                                            <option value="medium">中危</option>
+                                            <option value="high">高危</option>
+                                            <option value="critical">严重</option>
+                                        </select>
+                                    </div>
+                                </div>
+                            </div>
+                            <div class="layui-col-md2">
+                                <button class="layui-btn" id="search-btn" style="margin-left: 10px;">
+                                    <i class="layui-icon">&#xe615;</i> 搜索
+                                </button>
+                                <button class="layui-btn layui-btn-primary" id="reset-btn">
+                                    <i class="layui-icon">&#xe669;</i> 重置
+                                </button>
+                            </div>
+                        </div>
+                    </div>
+                    
+                    <!-- 表格区域 -->
+                    <table id="poc-table" lay-filter="poc-table"></table>
+                    
+                    <script type="text/html" id="poc-toolbar">
+                        <div class="layui-btn-container">
+                            <button class="layui-btn layui-btn-sm" lay-event="edit"><i class="layui-icon">&#xe642;</i> 编辑</button>
+                            <button class="layui-btn layui-btn-sm layui-btn-danger" lay-event="del"><i class="layui-icon">&#xe640;</i> 删除</button>
+                        </div>
+                    </script>
+                    
+                    <!-- 危害等级模板 -->
+                    <script type="text/html" id="severityTpl">
+                        {% verbatim %}
+                        {{#  if(d.severity === 'info'){ }}
+                        <span class="layui-badge layui-bg-blue">信息</span>
+                        {{#  } else if(d.severity === 'low'){ }}
+                        <span class="layui-badge layui-bg-green">低危</span>
+                        {{#  } else if(d.severity === 'medium'){ }}
+                        <span class="layui-badge layui-bg-orange">中危</span>
+                        {{#  } else if(d.severity === 'high'){ }}
+                        <span class="layui-badge layui-bg-red">高危</span>
+                        {{#  } else if(d.severity === 'critical'){ }}
+                        <span class="layui-badge" style="background-color: #8B0000;">严重</span>
+                        {{#  } else { }}
+                        <span class="layui-badge layui-bg-gray">未知</span>
+                        {{#  } }}
+                        {% endverbatim %}
+                    </script>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- 添加/编辑POC弹窗 -->
+<div id="poc-form-container" style="display: none; padding: 20px;">
+    <form class="layui-form" id="poc-form" lay-filter="poc-form">
+        <input type="hidden" name="id" value="">
+        <div class="layui-form-item">
+            <label class="layui-form-label">POC名称</label>
+            <div class="layui-input-block">
+                <input type="text" name="name" required lay-verify="required" placeholder="请输入POC名称" autocomplete="off" class="layui-input">
+            </div>
+        </div>
+        <div class="layui-form-item">
+            <label class="layui-form-label">所属分类</label>
+            <div class="layui-input-block">
+                <select name="category_id" lay-verify="required" id="form-category-select">
+                    <option value="">请选择分类</option>
+                </select>
+            </div>
+        </div>
+        <div class="layui-form-item">
+            <label class="layui-form-label">危害等级</label>
+            <div class="layui-input-block">
+                <select name="severity" lay-verify="required">
+                    <option value="">请选择危害等级</option>
+                    <option value="info">信息</option>
+                    <option value="low">低危</option>
+                    <option value="medium">中危</option>
+                    <option value="high">高危</option>
+                    <option value="critical">严重</option>
+                </select>
+            </div>
+        </div>
+        <div class="layui-form-item">
+            <label class="layui-form-label">POC描述</label>
+            <div class="layui-input-block">
+                <textarea name="description" placeholder="请输入POC描述" class="layui-textarea"></textarea>
+            </div>
+        </div>
+        <div class="layui-form-item">
+            <label class="layui-form-label">Nuclei模板</label>
+            <div class="layui-input-block">
+                <textarea name="template" required lay-verify="required" placeholder="请输入Nuclei模板内容" class="layui-textarea" style="height: 300px;"></textarea>
+            </div>
+        </div>
+        <div class="layui-form-item">
+            <div class="layui-input-block">
+                <button class="layui-btn" lay-submit lay-filter="poc-submit">提交</button>
+                <button type="reset" class="layui-btn layui-btn-primary">重置</button>
+            </div>
+        </div>
+    </form>
+</div>
+{% endblock %}
+
+{% block scripts %}
+<script>
+layui.use(['table', 'form', 'jquery', 'layer'], function(){
+    var table = layui.table;
+    var form = layui.form;
+    var $ = layui.jquery;
+    var layer = layui.layer;
+    
+    // 加载POC分类数据
+    function loadCategories() {
+        $.ajax({
+            url: '/manager/api/poc/categories/',
+            type: 'GET',
+            data: {
+                page: 1,
+                limit: 1000  // 获取所有分类
+            },
+            success: function(res) {
+                if(res.code === 200) {
+                    var options = '<option value="">全部分类</option>';
+                    var formOptions = '<option value="">请选择分类</option>';
+                    
+                    $.each(res.data, function(index, item) {
+                        options += '<option value="' + item.id + '">' + item.name + '</option>';
+                        formOptions += '<option value="' + item.id + '">' + item.name + '</option>';
+                    });
+                    
+                    $('#category-select').html(options);
+                    $('#form-category-select').html(formOptions);
+                    form.render('select');
+                }
+            }
+        });
+    }
+    
+    // 初始化加载分类
+    loadCategories();
+    
+    // 初始化表格
+    table.render({
+        elem: '#poc-table',
+        url: '/manager/api/poc/',  // 后端API接口
+        page: true,
+        cols: [[
+            {field: 'id', title: 'ID', width: 80, sort: true},
+            {field: 'name', title: 'POC名称', width: 150},
+            {field: 'category_name', title: '所属分类', width: 120},
+            {field: 'severity', title: '危害等级', width: 100, templet: '#severityTpl'},
+            {field: 'description', title: '描述'},
+            {field: 'create_time', title: '创建时间', width: 180, sort: true},
+            {fixed: 'right', title: '操作', toolbar: '#poc-toolbar', width: 150}
+        ]],
+        response: {
+            statusCode: 200
+        },
+        parseData: function(res){
+            return {
+                "code": res.code,
+                "msg": res.msg,
+                "count": res.count,
+                "data": res.data
+            };
+        }
+    });
+    
+    // 搜索按钮事件
+    $('#search-btn').on('click', function() {
+        var name = $('input[name="name"]').val();
+        var category_id = $('#category-select').val();
+        var severity = $('#severity-select').val();
+        
+        table.reload('poc-table', {
+            page: {
+                curr: 1
+            },
+            where: {
+                name: name,
+                category_id: category_id,
+                severity: severity
+            }
+        });
+    });
+    
+    // 重置按钮事件
+    $('#reset-btn').on('click', function() {
+        $('input[name="name"]').val('');
+        $('#category-select').val('');
+        $('#severity-select').val('');
+        form.render('select');
+        
+        table.reload('poc-table', {
+            page: {
+                curr: 1
+            },
+            where: {
+                name: '',
+                category_id: '',
+                severity: ''
+            }
+        });
+    });
+    
+    // 表格工具条事件
+    table.on('tool(poc-table)', function(obj){
+        var data = obj.data;
+        if(obj.event === 'edit'){
+            // 编辑POC
+            form.val('poc-form', {
+                "id": data.id,
+                "name": data.name,
+                "category_id": data.category_id,
+                "severity": data.severity,
+                "description": data.description,
+                "template": data.template
+            });
+            
+            layer.open({
+                type: 1,
+                title: '编辑POC',
+                content: $('#poc-form-container'),
+                area: ['800px', '650px'],
+                success: function(){
+                    form.render();
+                }
+            });
+        } else if(obj.event === 'del'){
+            // 删除POC
+            layer.confirm('确定要删除该POC吗？', function(index){
+                $.ajax({
+                    url: '/manager/api/poc/' + data.id + '/',
+                    type: 'DELETE',
+                    contentType: 'application/json',
+                    success: function(res){
+                        if(res.code === 200){
+                            layer.msg('删除成功');
+                            obj.del();
+                        } else {
+                            layer.msg('删除失败：' + res.msg);
+                        }
+                    },
+                    error: function(){
+                        layer.msg('删除请求失败，请检查网络');
+                    }
+                });
+                layer.close(index);
+            });
+        }
+    });
+    
+    // 添加POC按钮事件
+    $('#add-poc-btn').on('click', function(){
+        // 重置表单
+        $('#poc-form')[0].reset();
+        $('input[name="id"]').val('');
+        
+        layer.open({
+            type: 1,
+            title: '添加POC',
+            content: $('#poc-form-container'),
+            area: ['800px', '650px'],
+            success: function(){
+                form.render();
+            }
+        });
+    });
+    
+    // 表单提交事件
+    form.on('submit(poc-submit)', function(data){
+        var formData = data.field;
+        var url = '/manager/api/poc/';
+        var type = 'POST';
+        
+        // 如果有ID，则为编辑操作
+        if(formData.id){
+            url += formData.id + '/';
+            type = 'PUT';
+        }
+        
+        $.ajax({
+            url: url,
+            type: type,
+            contentType: 'application/json',
+            data: JSON.stringify(formData),
+            success: function(res){
+                if(res.code === 200){
+                    layer.closeAll('page');
+                    layer.msg('操作成功');
+                    table.reload('poc-table');
+                } else {
+                    layer.msg('操作失败：' + res.msg);
+                }
+            },
+            error: function(){
+                layer.msg('请求失败，请检查网络');
+            }
+        });
+        
+        return false;  // 阻止表单跳转
+    });
+});
+</script>
+{% endblock %}

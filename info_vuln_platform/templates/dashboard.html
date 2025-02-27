@@ -1,0 +1,50 @@
+{% extends 'base.html' %}
+
+{% block title %}后台首页{% endblock %}
+
+{% block content %}
+<div class="layui-fluid">
+    <div class="layui-row layui-col-space15">
+        <div class="layui-col-md12">
+            <div class="layui-card">
+                <div class="layui-card-header">欢迎使用信息收集渗透测试平台</div>
+                <div class="layui-card-body">
+                    <p>欢迎，{{ request.session.username }}！</p>
+                    <p>您可以使用左侧导航栏访问各个功能模块。</p>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}
+
+{% block scripts %}
+<script>
+layui.use(['jquery', 'layer'], function(){
+  var $ = layui.jquery;
+  var layer = layui.layer;
+  
+  // 获取用户总数
+  $.ajax({
+    url: '/manager/api/users/',
+    type: 'GET',
+    success: function(res) {
+      if (res.code === 200) {
+        $('#user-count').text(res.count);
+      } else {
+        $('#user-count').text('获取失败');
+      }
+    },
+    error: function() {
+      $('#user-count').text('获取失败');
+    }
+  });
+  
+  // 模拟系统运行时间
+  var startDate = new Date('2025-01-01');
+  var now = new Date();
+  var diff = Math.floor((now - startDate) / (1000 * 60 * 60 * 24));
+  $('#uptime').text(diff + '天');
+});
+</script>
+{% endblock %}

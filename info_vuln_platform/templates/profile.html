@@ -1,0 +1,91 @@
+{% extends 'base.html' %}
+
+{% block title %}个人信息{% endblock %}
+
+{% block content %}
+<div class="layui-fluid">
+    <div class="layui-row layui-col-space15">
+        <div class="layui-col-md12">
+            <div class="layui-card">
+                <div class="layui-card-header">个人信息</div>
+                <div class="layui-card-body">
+                    <form class="layui-form" lay-filter="profile-form">
+                        <div class="layui-form-item">
+                            <label class="layui-form-label">用户名</label>
+                            <div class="layui-input-block">
+                                <input type="text" name="username" value="{{ user.username }}" class="layui-input" readonly>
+                            </div>
+                        </div>
+                        <div class="layui-form-item">
+                            <label class="layui-form-label">邮箱</label>
+                            <div class="layui-input-block">
+                                <input type="text" name="email" value="{{ user.email }}" class="layui-input" placeholder="请输入邮箱">
+                            </div>
+                        </div>
+                        <div class="layui-form-item">
+                            <label class="layui-form-label">角色</label>
+                            <div class="layui-input-block">
+                                <input type="text" value="{{ user.is_admin|yesno:'管理员,普通用户' }}" class="layui-input" readonly>
+                            </div>
+                        </div>
+                        <div class="layui-form-item">
+                            <label class="layui-form-label">注册时间</label>
+                            <div class="layui-input-block">
+                                <input type="text" value="{{ user.created_at|date:'Y-m-d H:i:s' }}" class="layui-input" readonly>
+                            </div>
+                        </div>
+                        <div class="layui-form-item">
+                            <label class="layui-form-label">最后登录</label>
+                            <div class="layui-input-block">
+                                <input type="text" value="{{ user.last_login|date:'Y-m-d H:i:s' }}" class="layui-input" readonly>
+                            </div>
+                        </div>
+                        <div class="layui-form-item">
+                            <div class="layui-input-block">
+                                <button class="layui-btn" lay-submit lay-filter="profile-submit">保存修改</button>
+                            </div>
+                        </div>
+                    </form>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}
+
+{% block scripts %}
+<script>
+layui.use(['form', 'layer', 'jquery'], function(){
+    var form = layui.form;
+    var layer = layui.layer;
+    var $ = layui.jquery;
+    
+    // 监听表单提交
+    form.on('submit(profile-submit)', function(data){
+        var field = data.field;
+        
+        // 发送AJAX请求更新个人信息
+        $.ajax({
+            url: '/manager/api/profile/',
+            type: 'POST',
+            contentType: 'application/json',
+            data: JSON.stringify({
+                email: field.email
+            }),
+            success: function(res){
+                if(res.code === 200){
+                    layer.msg('保存成功', {icon: 1});
+                } else {
+                    layer.msg(res.message, {icon: 2});
+                }
+            },
+            error: function(){
+                layer.msg('服务器错误，请稍后再试', {icon: 2});
+            }
+        });
+        
+        return false; // 阻止表单跳转
+    });
+});
+</script>
+{% endblock %}

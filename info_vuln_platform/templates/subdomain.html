@@ -1,0 +1,290 @@
+{% extends 'base.html' %}
+
+{% block title %}子域名管理{% endblock %}
+
+{% block page_title %}子域名管理{% endblock %}
+
+{% block content %}
+<div class="layui-fluid">
+    <div class="layui-row layui-col-space15">
+        <div class="layui-col-md12">
+            <div class="layui-card">
+                <div class="layui-card-header">
+                    <div class="layui-row">
+                        <div class="layui-col-md6">
+                            子域名列表
+                        </div>
+                        <div class="layui-col-md6" style="text-align: right;">
+                            <button class="layui-btn layui-btn-sm layui-btn-normal" id="add-subdomain-btn">
+                                <i class="layui-icon">&#xe654;</i> 添加子域名
+                            </button>
+                        </div>
+                    </div>
+                </div>
+                <div class="layui-card-body">
+                    <!-- 搜索区域 -->
+                    <div class="layui-form layui-form-pane" style="margin-bottom: 20px;">
+                        <div class="layui-row layui-col-space10">
+                            <div class="layui-col-md3">
+                                <div class="layui-form-item">
+                                    <label class="layui-form-label">主域名</label>
+                                    <div class="layui-input-block">
+                                        <input type="text" name="domain" placeholder="请输入主域名" autocomplete="off" class="layui-input">
+                                    </div>
+                                </div>
+                            </div>
+                            <div class="layui-col-md3">
+                                <div class="layui-form-item">
+                                    <label class="layui-form-label">子域名</label>
+                                    <div class="layui-input-block">
+                                        <input type="text" name="subdomain" placeholder="请输入子域名" autocomplete="off" class="layui-input">
+                                    </div>
+                                </div>
+                            </div>
+                            <div class="layui-col-md2">
+                                <button class="layui-btn" id="search-btn" style="margin-left: 10px;">
+                                    <i class="layui-icon">&#xe615;</i> 搜索
+                                </button>
+                                <button class="layui-btn layui-btn-primary" id="reset-btn">
+                                    <i class="layui-icon">&#xe669;</i> 重置
+                                </button>
+                            </div>
+                        </div>
+                    </div>
+                    
+                    <!-- 表格区域 -->
+                    <table id="subdomain-table" lay-filter="subdomain-table"></table>
+                    
+                    <script type="text/html" id="subdomain-toolbar">
+                        <div class="layui-btn-container">
+                            <button class="layui-btn layui-btn-sm" lay-event="edit"><i class="layui-icon">&#xe642;</i> 编辑</button>
+                            <button class="layui-btn layui-btn-sm layui-btn-danger" lay-event="del"><i class="layui-icon">&#xe640;</i> 删除</button>
+                        </div>
+                    </script>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- 添加/编辑子域名弹窗 -->
+<div id="subdomain-form-container" style="display: none; padding: 20px;">
+    <form class="layui-form" id="subdomain-form" lay-filter="subdomain-form">
+        <input type="hidden" name="id" value="">
+        <div class="layui-form-item">
+            <label class="layui-form-label">主域名</label>
+            <div class="layui-input-block">
+                <input type="text" name="domain" required lay-verify="required" placeholder="请输入主域名，如：example.com" autocomplete="off" class="layui-input">
+            </div>
+        </div>
+        <div class="layui-form-item">
+            <label class="layui-form-label">子域名</label>
+            <div class="layui-input-block">
+                <input type="text" name="subdomain" required lay-verify="required" placeholder="请输入子域名，如：www" autocomplete="off" class="layui-input">
+            </div>
+        </div>
+        <div class="layui-form-item">
+            <label class="layui-form-label">IP地址</label>
+            <div class="layui-input-block">
+                <input type="text" name="ip" placeholder="请输入IP地址" autocomplete="off" class="layui-input">
+            </div>
+        </div>
+        <div class="layui-form-item">
+            <label class="layui-form-label">状态码</label>
+            <div class="layui-input-block">
+                <input type="number" name="status" placeholder="请输入状态码" autocomplete="off" class="layui-input">
+            </div>
+        </div>
+        <div class="layui-form-item">
+            <label class="layui-form-label">网站标题</label>
+            <div class="layui-input-block">
+                <input type="text" name="title" placeholder="请输入网站标题" autocomplete="off" class="layui-input">
+            </div>
+        </div>
+        <div class="layui-form-item">
+            <label class="layui-form-label">服务器</label>
+            <div class="layui-input-block">
+                <input type="text" name="server" placeholder="请输入服务器信息" autocomplete="off" class="layui-input">
+            </div>
+        </div>
+        <div class="layui-form-item">
+            <div class="layui-input-block">
+                <button class="layui-btn" lay-submit lay-filter="subdomain-submit">提交</button>
+                <button type="reset" class="layui-btn layui-btn-primary">重置</button>
+            </div>
+        </div>
+    </form>
+</div>
+{% endblock %}
+
+{% block scripts %}
+<script>
+layui.use(['table', 'form', 'jquery', 'layer'], function(){
+    var table = layui.table;
+    var form = layui.form;
+    var $ = layui.jquery;
+    var layer = layui.layer;
+    
+    // 初始化表格
+    table.render({
+        elem: '#subdomain-table',
+        url: '/manager/api/subdomain/',  // 后端API接口
+        page: true,
+        cols: [[
+            {field: 'id', title: 'ID', width: 80, sort: true},
+            {field: 'domain', title: '主域名', width: 150},
+            {field: 'subdomain', title: '子域名', width: 150},
+            {field: 'ip', title: 'IP地址', width: 120},
+            {field: 'status', title: '状态码', width: 100},
+            {field: 'title', title: '网站标题'},
+            {field: 'server', title: '服务器', width: 120},
+            {field: 'create_time', title: '创建时间', width: 180, sort: true},
+            {fixed: 'right', title: '操作', toolbar: '#subdomain-toolbar', width: 150}
+        ]],
+        response: {
+            statusCode: 200
+        },
+        parseData: function(res){
+            return {
+                "code": res.code,
+                "msg": res.msg,
+                "count": res.count,
+                "data": res.data
+            };
+        }
+    });
+    
+    // 表格工具条事件
+    table.on('tool(subdomain-table)', function(obj){
+        var data = obj.data;
+        if(obj.event === 'edit'){
+            // 编辑子域名
+            form.val('subdomain-form', {
+                "id": data.id,
+                "domain": data.domain,
+                "subdomain": data.subdomain,
+                "ip": data.ip,
+                "status": data.status,
+                "title": data.title,
+                "server": data.server
+            });
+            
+            layer.open({
+                type: 1,
+                title: '编辑子域名',
+                content: $('#subdomain-form-container'),
+                area: ['500px', '600px'],
+                success: function(){
+                    form.render();
+                }
+            });
+        } else if(obj.event === 'del'){
+            // 删除子域名
+            layer.confirm('确定要删除该子域名吗？', function(index){
+                $.ajax({
+                    url: '/manager/api/subdomain/' + data.id + '/',
+                    type: 'DELETE',
+                    success: function(res){
+                        if(res.code === 200){
+                            layer.msg('删除成功', {icon: 1});
+                            obj.del();
+                        } else {
+                            layer.msg(res.msg, {icon: 2});
+                        }
+                    },
+                    error: function(){
+                        layer.msg('服务器错误', {icon: 2});
+                    }
+                });
+                layer.close(index);
+            });
+        }
+    });
+    
+    // 添加子域名按钮事件
+    $('#add-subdomain-btn').on('click', function(){
+        // 重置表单
+        $('#subdomain-form')[0].reset();
+        form.val('subdomain-form', {
+            "id": ""
+        });
+        
+        layer.open({
+            type: 1,
+            title: '添加子域名',
+            content: $('#subdomain-form-container'),
+            area: ['500px', '600px'],
+            success: function(){
+                form.render();
+            }
+        });
+    });
+    
+    // 表单提交事件
+    form.on('submit(subdomain-submit)', function(data){
+        var formData = data.field;
+        var url = '/manager/api/subdomain/';
+        var type = 'POST';
+        
+        // 如果是编辑，则使用PUT方法
+        if(formData.id){
+            url = '/manager/api/subdomain/' + formData.id + '/';
+            type = 'PUT';
+        }
+        
+        $.ajax({
+            url: url,
+            type: type,
+            contentType: 'application/json',
+            data: JSON.stringify(formData),
+            success: function(res){
+                if(res.code === 200){
+                    layer.closeAll('page');
+                    layer.msg('操作成功', {icon: 1});
+                    table.reload('subdomain-table');
+                } else {
+                    layer.msg(res.msg, {icon: 2});
+                }
+            },
+            error: function(){
+                layer.msg('服务器错误', {icon: 2});
+            }
+        });
+        
+        return false;  // 阻止表单跳转
+    });
+    
+    // 搜索按钮事件
+    $('#search-btn').on('click', function(){
+        var domain = $('input[name="domain"]').val();
+        var subdomain = $('input[name="subdomain"]').val();
+        
+        table.reload('subdomain-table', {
+            page: {
+                curr: 1
+            },
+            where: {
+                domain: domain,
+                subdomain: subdomain
+            }
+        });
+    });
+    
+    // 重置按钮事件
+    $('#reset-btn').on('click', function(){
+        $('input[name="domain"]').val('');
+        $('input[name="subdomain"]').val('');
+        
+        table.reload('subdomain-table', {
+            page: {
+                curr: 1
+            },
+            where: {
+                domain: '',
+                subdomain: ''
+            }
+        });
+    });
+});
+</script>
+{% endblock %}
