@@ -2,6 +2,9 @@ from django.urls import path
 from . import views
 from django.views.decorators.csrf import csrf_exempt
 
+# 导入基础信息查询视图
+from .views_baseinfo import BaseInfoView, BaseInfoApiView
+
 urlpatterns = [
     # 登录页面
     path('', views.IndexView.as_view(), name='index'),
@@ -69,4 +72,10 @@ urlpatterns = [
     # POC API
     path('api/poc/', csrf_exempt(views.PocApiView.as_view()), name='poc_api'),
     path('api/poc/<int:poc_id>/', csrf_exempt(views.PocApiView.as_view()), name='poc_detail'),
+    
+    # 基础信息查询页面
+    path('baseinfo/', BaseInfoView.as_view(), name='baseinfo'),
+    
+    # 基础信息查询API
+    path('api/baseinfo/', BaseInfoApiView.as_view(), name='baseinfo_api'),
 ]

@@ -8,11 +8,14 @@ from django.utils.decorators import method_decorator
 from django.views.decorators.csrf import csrf_exempt
 from django.core.paginator import Paginator
 
-from .models import User, UserLog, FingerprintCategory, Fingerprint, Subdomain, PocCategory, Poc
+from .models import User, UserLog, FingerprintCategory, Fingerprint, Subdomain, PocCategory, Poc, BaseInfoQuery
 from .decorators import login_required
 
 # 导入子域名管理视图
 from .views_subdomain import SubdomainView, SubdomainApiView
+
+# 导入基础信息查询视图
+from .views_baseinfo import BaseInfoView, BaseInfoApiView
 
 # 创建密码哈希
 def hash_password(password):

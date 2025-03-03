@@ -134,3 +134,20 @@ class Poc(models.Model):
         
     def __str__(self):
         return f"{self.name} ({self.category.name})"
+
+class BaseInfoQuery(models.Model):
+    """基础信息查询记录"""
+    domain = models.CharField(max_length=255, verbose_name='域名')
+    has_cdn = models.BooleanField(default=False, verbose_name='是否有CDN')
+    ip_list = models.TextField(blank=True, null=True, verbose_name='IP列表')
+    whois_info = models.TextField(blank=True, null=True, verbose_name='WHOIS信息')
+    icp_info = models.TextField(blank=True, null=True, verbose_name='备案信息')
+    query_time = models.DateTimeField(auto_now_add=True, verbose_name='查询时间')
+    
+    class Meta:
+        verbose_name = '基础信息查询'
+        verbose_name_plural = '基础信息查询'
+        ordering = ['-query_time']
+    
+    def __str__(self):
+        return f"{self.domain} - {self.query_time}"
