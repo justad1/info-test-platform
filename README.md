@@ -103,22 +103,6 @@ venv\Scripts\activate  # Windows
 3. 安装依赖
 ```bash
 pip install -r requirements.txt
-
-# 安装Nuclei工具（用于漏洞扫描）
-mkdir -p info_vuln_platform/sectools/Nuclei
-cd info_vuln_platform/sectools/Nuclei
-
-# 下载Nuclei
-# Linux 64位
-wget https://github.com/projectdiscovery/nuclei/releases/download/v3.3.9/nuclei_3.3.9_linux_amd64.zip
-unzip nuclei_3.3.9_linux_amd64.zip
-chmod +x nuclei
-
-# 或者使用go安装
-# go install -v github.com/projectdiscovery/nuclei/v3/cmd/nuclei@latest
-
-# 安装Nuclei模板
-nuclei -update-templates
 ```
 
 4. 配置数据库
@@ -270,13 +254,4 @@ python manage.py runserver 0.0.0.0:8000
 - 实现子域名收集功能
 - 实现POC管理功能
 
-## 贡献指南
 
-1. Fork 本仓库
-2. 创建新分支
-3. 提交代码
-4. 发起 Pull Request
-
-## 许可证
-
-本项目采用 MIT 许可证
