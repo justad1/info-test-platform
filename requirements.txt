@@ -1,0 +1,47 @@
+# Django及其依赖
+Django==4.2.10
+djangorestframework==3.14.0
+django-cors-headers==4.3.1
+django-filter==23.5
+django-simple-captcha==0.5.20
+
+# 数据库驱动
+mysqlclient==2.2.4
+PyMySQL==1.1.0
+
+# 工具依赖
+requests==2.31.0
+python-whois==0.8.0
+dnspython==2.5.0
+beautifulsoup4==4.12.3
+lxml==5.1.0
+python-nmap==0.7.1
+cryptography==42.0.2
+
+# 日期时间处理
+pytz==2024.1
+python-dateutil==2.8.2
+
+
+
+# 其他工具
+python-dotenv==1.0.1
+tqdm==4.66.2
+colorama==0.4.6
+urllib3==2.2.0
+certifi==2024.2.2
+chardet==5.2.0
+idna==3.6
+six==1.16.0
+
+# 开发工具
+pytest==8.0.0
+pytest-django==4.8.0
+coverage==7.4.1
+black==24.1.1
+flake8==7.0.0
+isort==5.13.2
+
+# 文档生成
+Sphinx==7.2.6
+sphinx-rtd-theme==2.0.0 

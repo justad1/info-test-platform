@@ -17,6 +17,9 @@ from .views_subdomain import SubdomainView, SubdomainApiView
 # 导入基础信息查询视图
 from .views_baseinfo import BaseInfoView, BaseInfoApiView
 
+# 导入端口扫描视图
+from .views_portscan import PortScanView, PortScanApiView
+
 # 创建密码哈希
 def hash_password(password):
     return hashlib.sha256(password.encode()).hexdigest()

@@ -4,6 +4,11 @@ from django.views.decorators.csrf import csrf_exempt
 
 # 导入基础信息查询视图
 from .views_baseinfo import BaseInfoView, BaseInfoApiView
+from .views_portscan import PortScanView, PortScanApiView
+from .views_dirscan import DirScanView, DirScanApiView
+from .views_subdomain_scan import SubdomainScanView, SubdomainScanApiView
+from .views_vulnscan import VulnScanView, VulnScanApiView
+from .views_fingerscan import FingerprintScanView, FingerprintScanApiView
 
 urlpatterns = [
     # 登录页面
@@ -78,4 +83,45 @@ urlpatterns = [
     
     # 基础信息查询API
     path('api/baseinfo/', BaseInfoApiView.as_view(), name='baseinfo_api'),
+    
+    # 端口扫描页面
+    path('portscan/', PortScanView.as_view(), name='portscan'),
+    
+    # 端口扫描API
+    path('api/portscan/', PortScanApiView.as_view(), name='portscan_api'),
+    path('api/portscan/export/', PortScanApiView.as_view(), name='portscan_export'),
+    path('api/portscan/history/', PortScanApiView.as_view(), name='portscan_history'),
+    path('api/portscan/history/<int:scan_id>/', PortScanApiView.as_view(), name='portscan_history_detail'),
+    
+    # 目录扫描页面
+    path('dirscan/', DirScanView.as_view(), name='dirscan'),
+    
+    # 目录扫描API
+    path('api/dirscan/', DirScanApiView.as_view(), name='dirscan_api'),
+    path('api/dirscan/export/', DirScanApiView.as_view(), name='dirscan_export'),
+    path('api/dirscan/history/', DirScanApiView.as_view(), name='dirscan_history'),
+    path('api/dirscan/history/<int:scan_id>/', DirScanApiView.as_view(), name='dirscan_history_detail'),
+    
+    # 子域名扫描页面
+    path('subdomain/scan/', SubdomainScanView.as_view(), name='subdomain_scan'),
+    
+    # 子域名扫描API
+    path('api/subdomain/scan/', csrf_exempt(SubdomainScanApiView.as_view()), name='subdomain_scan_api'),
+    path('api/subdomain/scan/<int:scan_id>/', csrf_exempt(SubdomainScanApiView.as_view()), name='subdomain_scan_detail'),
+    
+    # 漏洞扫描页面
+    path('vulnscan/', VulnScanView.as_view(), name='vulnscan'),
+    
+    # 漏洞扫描API
+    path('api/vulnscan/', csrf_exempt(VulnScanApiView.as_view()), name='vulnscan_api'),
+    path('api/vulnscan/export/', csrf_exempt(VulnScanApiView.as_view()), name='vulnscan_export'),
+    path('api/vulnscan/history/', csrf_exempt(VulnScanApiView.as_view()), name='vulnscan_history'),
+    path('api/vulnscan/history/<int:scan_id>/', csrf_exempt(VulnScanApiView.as_view()), name='vulnscan_history_detail'),
+    
+    # 指纹识别页面
+    path('fingerprint/scan/', FingerprintScanView.as_view(), name='fingerprint_scan'),
+    
+    # 指纹识别API
+    path('api/fingerprint/scan/', csrf_exempt(FingerprintScanApiView.as_view()), name='fingerprint_scan_api'),
+    path('api/fingerprint/scan/<int:scan_id>/', csrf_exempt(FingerprintScanApiView.as_view()), name='fingerprint_scan_detail'),
 ]

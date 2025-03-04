@@ -1,0 +1,548 @@
+{% extends 'base.html' %}
+
+{% block title %}指纹识别{% endblock %}
+
+{% block page_title %}指纹识别{% endblock %}
+
+{% block content %}
+<div class="layui-fluid">
+    <div class="layui-row layui-col-space15">
+        <!-- 扫描表单 -->
+        <div class="layui-col-md12">
+            <div class="layui-card">
+                <div class="layui-card-header">
+                    <div class="layui-row">
+                        <div class="layui-col-md6">
+                            <span>指纹识别</span>
+                        </div>
+                        <div class="layui-col-md6" style="text-align: right;">
+                            <a href="/manager/fingerprint/" class="layui-btn layui-btn-sm layui-btn-primary">
+                                <i class="layui-icon">&#xe62d;</i> 指纹管理
+                            </a>
+                        </div>
+                    </div>
+                </div>
+                <div class="layui-card-body">
+                    <form class="layui-form" id="scan-form">
+                        <div class="layui-form-item">
+                            <label class="layui-form-label">目标URL</label>
+                            <div class="layui-input-block">
+                                <input type="text" name="target" required lay-verify="required" placeholder="请输入目标URL，例如: http://example.com" autocomplete="off" class="layui-input">
+                            </div>
+                        </div>
+                        <div class="layui-form-item">
+                            <div class="layui-input-block">
+                                <button class="layui-btn" lay-submit lay-filter="scan-submit">开始识别</button>
+                                <button type="reset" class="layui-btn layui-btn-primary">重置</button>
+                            </div>
+                        </div>
+                    </form>
+                </div>
+            </div>
+        </div>
+        
+        <!-- 扫描结果 -->
+        <div class="layui-col-md12">
+            <div class="layui-card">
+                <div class="layui-card-header">识别结果</div>
+                <div class="layui-card-body">
+                    <div id="result-container" style="display: none;">
+                        <div class="layui-row">
+                            <div class="layui-col-md12">
+                                <fieldset class="layui-elem-field">
+                                    <legend>基本信息</legend>
+                                    <div class="layui-field-box">
+                                        <table class="layui-table" lay-skin="nob">
+                                            <tbody>
+                                                <tr>
+                                                    <td style="width: 100px;"><strong>目标URL</strong></td>
+                                                    <td id="result-target"></td>
+                                                </tr>
+                                                <tr>
+                                                    <td><strong>网站标题</strong></td>
+                                                    <td id="result-title"></td>
+                                                </tr>
+                                                <tr>
+                                                    <td><strong>Web服务器</strong></td>
+                                                    <td id="result-web-server"></td>
+                                                </tr>
+                                                <tr>
+                                                    <td><strong>扫描状态</strong></td>
+                                                    <td id="result-status"></td>
+                                                </tr>
+                                                <tr>
+                                                    <td><strong>开始时间</strong></td>
+                                                    <td id="result-start-time"></td>
+                                                </tr>
+                                                <tr>
+                                                    <td><strong>结束时间</strong></td>
+                                                    <td id="result-end-time"></td>
+                                                </tr>
+                                            </tbody>
+                                        </table>
+                                    </div>
+                                </fieldset>
+                            </div>
+                        </div>
+                        
+                        <div class="layui-row" style="margin-top: 20px;">
+                            <div class="layui-col-md12">
+                                <fieldset class="layui-elem-field">
+                                    <legend>识别到的指纹</legend>
+                                    <div class="layui-field-box">
+                                        <div id="fingerprint-list" class="layui-row layui-col-space10">
+                                            <!-- 指纹列表将在这里动态添加 -->
+                                        </div>
+                                    </div>
+                                </fieldset>
+                            </div>
+                        </div>
+                        
+                        <div class="layui-row" style="margin-top: 20px;">
+                            <div class="layui-col-md12">
+                                <fieldset class="layui-elem-field">
+                                    <legend>原始输出</legend>
+                                    <div class="layui-field-box">
+                                        <div class="layui-card">
+                                            <div class="layui-card-header" style="background-color: #393D49; color: #fff;">
+                                                <i class="layui-icon" style="margin-right: 5px;">&#xe623;</i>控制台输出
+                                            </div>
+                                            <div class="layui-card-body" style="background-color: #2F4056; color: #CFD2D6; padding: 15px;">
+                                                <pre id="raw-output" style="white-space: pre-wrap; word-wrap: break-word; font-family: 'Courier New', Courier, monospace; margin: 0; max-height: 300px; overflow-y: auto;"></pre>
+                                            </div>
+                                        </div>
+                                    </div>
+                                </fieldset>
+                            </div>
+                        </div>
+                    </div>
+                    
+                    <div id="loading-container" style="display: none; text-align: center; padding: 50px;">
+                        <i class="layui-icon layui-icon-loading layui-anim layui-anim-rotate layui-anim-loop" style="font-size: 30px;"></i>
+                        <p>正在扫描中，请稍候...</p>
+                    </div>
+                    
+                    <div id="no-result-container" style="text-align: center; padding: 50px;">
+                        <i class="layui-icon layui-icon-search" style="font-size: 30px;"></i>
+                        <p>请输入目标URL并点击"开始识别"按钮</p>
+                    </div>
+                </div>
+            </div>
+        </div>
+        
+        <!-- 扫描历史 -->
+        <div class="layui-col-md12">
+            <div class="layui-card">
+                <div class="layui-card-header">扫描历史</div>
+                <div class="layui-card-body">
+                    <table id="history-table" lay-filter="history-table"></table>
+                    
+                    <script type="text/html" id="history-toolbar">
+                        <div class="layui-btn-container">
+                            <button class="layui-btn layui-btn-sm" lay-event="view"><i class="layui-icon">&#xe615;</i> 查看</button>
+                            <button class="layui-btn layui-btn-sm layui-btn-danger" lay-event="del"><i class="layui-icon">&#xe640;</i> 删除</button>
+                        </div>
+                    </script>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}
+
+{% block scripts %}
+<script>
+layui.use(['form', 'table', 'jquery', 'layer'], function(){
+    var form = layui.form;
+    var table = layui.table;
+    var $ = layui.jquery;
+    var layer = layui.layer;
+    
+    // 当前扫描ID
+    var currentScanId = null;
+    
+    // 初始化历史表格
+    table.render({
+        elem: '#history-table',
+        url: '/manager/api/fingerprint/scan/',
+        page: true,
+        cols: [[
+            {field: 'id', title: 'ID', width: 80, sort: true},
+            {field: 'target', title: '目标URL', width: 300},
+            {field: 'status', title: '状态', width: 100, templet: function(d) {
+                var statusMap = {
+                    'pending': '<span class="layui-badge layui-bg-orange">等待中</span>',
+                    'running': '<span class="layui-badge layui-bg-blue">扫描中</span>',
+                    'completed': '<span class="layui-badge layui-bg-green">已完成</span>',
+                    'failed': '<span class="layui-badge layui-bg-red">失败</span>'
+                };
+                return statusMap[d.status] || d.status;
+            }},
+            {field: 'start_time', title: '开始时间', width: 180, sort: true},
+            {field: 'end_time', title: '结束时间', width: 180, sort: true},
+            {fixed: 'right', title: '操作', toolbar: '#history-toolbar', width: 150}
+        ]],
+        response: {
+            statusCode: 200
+        },
+        parseData: function(res){
+            return {
+                "code": res.code,
+                "msg": res.msg,
+                "count": res.count,
+                "data": res.data
+            };
+        }
+    });
+    
+    // 表格工具条事件
+    table.on('tool(history-table)', function(obj){
+        var data = obj.data;
+        if(obj.event === 'view'){
+            // 查看扫描结果
+            loadScanResult(data.id);
+        } else if(obj.event === 'del'){
+            // 删除扫描记录
+            layer.confirm('确定要删除该扫描记录吗？', function(index){
+                $.ajax({
+                    url: '/manager/api/fingerprint/scan/' + data.id + '/',
+                    type: 'DELETE',
+                    contentType: 'application/json',
+                    success: function(res){
+                        if(res.code === 200){
+                            layer.msg('删除成功');
+                            obj.del();
+                        } else {
+                            layer.msg('删除失败：' + res.msg);
+                        }
+                    },
+                    error: function(){
+                        layer.msg('删除请求失败，请检查网络');
+                    }
+                });
+                layer.close(index);
+            });
+        }
+    });
+    
+    // 表单提交事件
+    form.on('submit(scan-submit)', function(data){
+        // 显示加载中
+        $('#no-result-container').hide();
+        $('#result-container').hide();
+        $('#loading-container').show();
+        
+        // 发送扫描请求
+        $.ajax({
+            url: '/manager/api/fingerprint/scan/',
+            type: 'POST',
+            contentType: 'application/json',
+            data: JSON.stringify(data.field),
+            success: function(res){
+                if(res.code === 200){
+                    currentScanId = res.data.id;
+                    layer.msg('扫描任务已创建');
+                    
+                    // 定时查询扫描状态
+                    checkScanStatus();
+                } else {
+                    $('#loading-container').hide();
+                    $('#no-result-container').show();
+                    layer.msg('创建扫描任务失败：' + res.msg);
+                }
+            },
+            error: function(){
+                $('#loading-container').hide();
+                $('#no-result-container').show();
+                layer.msg('请求失败，请检查网络');
+            }
+        });
+        
+        return false;  // 阻止表单跳转
+    });
+    
+    // 检查扫描状态
+    function checkScanStatus() {
+        if (!currentScanId) return;
+        
+        $.ajax({
+            url: '/manager/api/fingerprint/scan/' + currentScanId + '/',
+            type: 'GET',
+            success: function(res){
+                if(res.code === 200){
+                    var scan = res.data;
+                    
+                    if(scan.status === 'completed' || scan.status === 'failed'){
+                        // 扫描完成或失败，显示结果
+                        displayScanResult(scan);
+                        
+                        // 刷新历史表格
+                        table.reload('history-table');
+                    } else {
+                        // 继续查询
+                        setTimeout(checkScanStatus, 2000);
+                    }
+                } else {
+                    $('#loading-container').hide();
+                    $('#no-result-container').show();
+                    layer.msg('获取扫描状态失败：' + res.msg);
+                }
+            },
+            error: function(){
+                $('#loading-container').hide();
+                $('#no-result-container').show();
+                layer.msg('请求失败，请检查网络');
+            }
+        });
+    }
+    
+    // 加载扫描结果
+    function loadScanResult(scanId) {
+        $('#no-result-container').hide();
+        $('#result-container').hide();
+        $('#loading-container').show();
+        
+        $.ajax({
+            url: '/manager/api/fingerprint/scan/' + scanId + '/',
+            type: 'GET',
+            success: function(res){
+                if(res.code === 200){
+                    displayScanResult(res.data);
+                } else {
+                    $('#loading-container').hide();
+                    $('#no-result-container').show();
+                    layer.msg('获取扫描结果失败：' + res.msg);
+                }
+            },
+            error: function(){
+                $('#loading-container').hide();
+                $('#no-result-container').show();
+                layer.msg('请求失败，请检查网络');
+            }
+        });
+    }
+    
+    // 显示扫描结果
+    function displayScanResult(scan) {
+        // 隐藏加载中
+        $('#loading-container').hide();
+        
+        // 显示结果容器
+        $('#result-container').show();
+        
+        // 填充基本信息
+        $('#result-target').text(scan.target);
+        
+        var statusMap = {
+            'pending': '等待中',
+            'running': '扫描中',
+            'completed': '已完成',
+            'failed': '失败'
+        };
+        $('#result-status').text(statusMap[scan.status] || scan.status);
+        $('#result-start-time').text(scan.start_time);
+        $('#result-end-time').text(scan.end_time || '-');
+        
+        // 清空指纹列表
+        $('#fingerprint-list').empty();
+        
+        if(scan.result) {
+            try {
+                // 确保结果是一个对象
+                var result = typeof scan.result === 'string' ? JSON.parse(scan.result) : scan.result;
+                
+                // 填充标题和Web服务器
+                $('#result-title').text(result.title || '-');
+                $('#result-web-server').text(result.web_server || '-');
+                
+                // 填充指纹列表
+                if(result.fingerprints && result.fingerprints.length > 0) {
+                    // 按类型分组指纹
+                    var techGroups = {
+                        'web_server': { title: 'Web 服务器', items: [], icon: '&#xe857;', color: '#FF5722', bgColor: '#FFF0EB' },
+                        'reverse_proxy': { title: '反向代理', items: [], icon: '&#xe857;', color: '#009688', bgColor: '#E6F7F5' },
+                        'programming_language': { title: '编程语言', items: [], icon: '&#xe64e;', color: '#1E9FFF', bgColor: '#E8F4FF' },
+                        'ui_framework': { title: '用户界面 (UI) 框架', items: [], icon: '&#xe631;', color: '#01AAED', bgColor: '#E6F7FB' },
+                        'javascript_library': { title: 'JavaScript 库', items: [], icon: '&#xe635;', color: '#FFB800', bgColor: '#FFF8E6' },
+                        'cms': { title: 'CMS 系统', items: [], icon: '&#xe630;', color: '#FF5722', bgColor: '#FFF0EB' },
+                        'other': { title: '其他技术', items: [], icon: '&#xe60b;', color: '#393D49', bgColor: '#F0F0F0' }
+                    };
+                    
+                    // 分类指纹
+                    for(var i = 0; i < result.fingerprints.length; i++) {
+                        var fingerprint = result.fingerprints[i];
+                        if(typeof fingerprint === 'object' && fingerprint.type && fingerprint.name) {
+                            // 新格式，已经分类
+                            if(techGroups[fingerprint.type]) {
+                                techGroups[fingerprint.type].items.push(fingerprint.name);
+                            } else {
+                                techGroups['other'].items.push(fingerprint.name);
+                            }
+                        } else if(typeof fingerprint === 'string') {
+                            // 兼容旧格式，根据关键字分类
+                            var fp_lower = fingerprint.toLowerCase();
+                            if(fp_lower.indexOf('nginx') !== -1 || fp_lower.indexOf('apache') !== -1 || fp_lower.indexOf('iis') !== -1) {
+                                techGroups['web_server'].items.push(fingerprint);
+                            } else if(fp_lower.indexOf('php') !== -1 || fp_lower.indexOf('asp') !== -1 || fp_lower.indexOf('jsp') !== -1) {
+                                techGroups['programming_language'].items.push(fingerprint);
+                            } else if(fp_lower.indexOf('layui') !== -1 || fp_lower.indexOf('bootstrap') !== -1) {
+                                techGroups['ui_framework'].items.push(fingerprint);
+                            } else if(fp_lower.indexOf('jquery') !== -1 || fp_lower.indexOf('vue') !== -1 || fp_lower.indexOf('react') !== -1) {
+                                techGroups['javascript_library'].items.push(fingerprint);
+                            } else if(fp_lower.indexOf('wordpress') !== -1 || fp_lower.indexOf('cms') !== -1) {
+                                techGroups['cms'].items.push(fingerprint);
+                            } else if(!this._isStatusCode(fingerprint)) { // 过滤状态码
+                                techGroups['other'].items.push(fingerprint);
+                            }
+                        }
+                    }
+                    
+                    // 生成HTML
+                    var html = '';
+                    for(var type in techGroups) {
+                        if(techGroups[type].items.length > 0) {
+                            // 添加分类标题
+                            html += '<div class="layui-col-md12">';
+                            html += '<div style="margin-bottom: 15px; margin-top: 20px; border-left: 4px solid ' + techGroups[type].color + '; padding-left: 10px;">';
+                            html += '<i class="layui-icon" style="color: ' + techGroups[type].color + '; margin-right: 8px; font-size: 18px;">' + techGroups[type].icon + '</i>';
+                            html += '<span style="font-weight: bold; font-size: 16px; color: #333;">' + techGroups[type].title + '</span>';
+                            html += '</div>';
+                            
+                            // 开始技术项行
+                            html += '<div class="layui-row layui-col-space15">';
+                            
+                            // 每个技术项
+                            for(var j = 0; j < techGroups[type].items.length; j++) {
+                                var item = techGroups[type].items[j];
+                                // 尝试提取版本号
+                                var name, version;
+                                
+                                // 常见的版本号模式
+                                var versionPatterns = [
+                                    /([\w.-]+)[/\s]([\d.]+(?:-[\w.]+)?)/,  // Nginx 1.18.0 或 PHP/7.4.3
+                                    /([\w.-]+)\s+v([\d.]+(?:-[\w.]+)?)/,    // jQuery v3.5.1
+                                    /([\w.-]+)\s+version\s+([\d.]+(?:-[\w.]+)?)/  // 显式版本标记
+                                ];
+                                
+                                var matched = false;
+                                for (var k = 0; k < versionPatterns.length; k++) {
+                                    var match = item.match(versionPatterns[k]);
+                                    if (match) {
+                                        name = match[1];
+                                        version = match[2];
+                                        matched = true;
+                                        break;
+                                    }
+                                }
+                                
+                                if (!matched) {
+                                    // 如果没有匹配到版本号，尝试简单的空格分割
+                                    var itemParts = item.split(/\s+/);
+                                    name = itemParts[0];
+                                    version = itemParts.length > 1 ? itemParts.slice(1).join(' ') : '';
+                                }
+                                
+                                // 确定图标和颜色
+                                var iconColor = techGroups[type].color;
+                                var iconBg = '';
+                                var nameColor = '';
+                                
+                                // 根据技术类型设置图标
+                                if(type === 'web_server') {
+                                    iconBg = '<span style="display: inline-block; width: 40px; height: 40px; background-color: white; border: 2px solid ' + iconColor + '; border-radius: 50%; text-align: center; line-height: 36px; margin-right: 12px; box-shadow: 0 2px 4px rgba(0,0,0,0.1);"><i class="layui-icon layui-icon-website" style="color: ' + iconColor + ';"></i></span>';
+                                    nameColor = 'color: #333;';
+                                } else if(type === 'reverse_proxy') {
+                                    iconBg = '<span style="display: inline-block; width: 40px; height: 40px; background-color: white; border: 2px solid ' + iconColor + '; border-radius: 50%; text-align: center; line-height: 36px; margin-right: 12px; box-shadow: 0 2px 4px rgba(0,0,0,0.1);"><i class="layui-icon layui-icon-share" style="color: ' + iconColor + ';"></i></span>';
+                                    nameColor = 'color: #333;';
+                                } else if(type === 'programming_language') {
+                                    iconBg = '<span style="display: inline-block; width: 40px; height: 40px; background-color: white; border: 2px solid ' + iconColor + '; border-radius: 50%; text-align: center; line-height: 36px; margin-right: 12px; box-shadow: 0 2px 4px rgba(0,0,0,0.1);"><i class="layui-icon layui-icon-code-circle" style="color: ' + iconColor + ';"></i></span>';
+                                    nameColor = 'color: #333;';
+                                } else if(type === 'ui_framework') {
+                                    iconBg = '<span style="display: inline-block; width: 40px; height: 40px; background-color: white; border: 2px solid ' + iconColor + '; border-radius: 50%; text-align: center; line-height: 36px; margin-right: 12px; box-shadow: 0 2px 4px rgba(0,0,0,0.1);"><i class="layui-icon layui-icon-layouts" style="color: ' + iconColor + ';"></i></span>';
+                                    nameColor = 'color: #333;';
+                                } else if(type === 'javascript_library') {
+                                    iconBg = '<span style="display: inline-block; width: 40px; height: 40px; background-color: white; border: 2px solid ' + iconColor + '; border-radius: 50%; text-align: center; line-height: 36px; margin-right: 12px; box-shadow: 0 2px 4px rgba(0,0,0,0.1);"><i class="layui-icon layui-icon-app" style="color: ' + iconColor + ';"></i></span>';
+                                    nameColor = 'color: #333;';
+                                } else if(type === 'cms') {
+                                    iconBg = '<span style="display: inline-block; width: 40px; height: 40px; background-color: white; border: 2px solid ' + iconColor + '; border-radius: 50%; text-align: center; line-height: 36px; margin-right: 12px; box-shadow: 0 2px 4px rgba(0,0,0,0.1);"><i class="layui-icon layui-icon-template" style="color: ' + iconColor + ';"></i></span>';
+                                    nameColor = 'color: #333;';
+                                } else {
+                                    // 其他类型使用默认图标
+                                    iconBg = '<span style="display: inline-block; width: 40px; height: 40px; background-color: white; border: 2px solid ' + iconColor + '; border-radius: 50%; text-align: center; line-height: 36px; margin-right: 12px; box-shadow: 0 2px 4px rgba(0,0,0,0.1);"><i class="layui-icon layui-icon-component" style="color: ' + iconColor + ';"></i></span>';
+                                    nameColor = 'color: #333;';
+                                }
+                                
+                                html += '<div class="layui-col-md3 layui-col-sm6">';
+                                html += '<div style="display: flex; align-items: center; padding: 10px; margin: 5px; border-radius: 6px; background-color: ' + techGroups[type].bgColor + '; box-shadow: 0 2px 5px rgba(0,0,0,0.05);">';
+                                
+                                // 图标
+                                html += iconBg;
+                                
+                                // 名称和版本
+                                html += '<div style="flex: 1;">';
+                                html += '<div style="font-weight: bold; ' + nameColor + '">' + name + '</div>';
+                                if(version) {
+                                    html += '<div style="font-size: 12px; color: #666; margin-top: 3px; background-color: rgba(0,0,0,0.05); display: inline-block; padding: 2px 6px; border-radius: 10px;">v' + version + '</div>';
+                                }
+                                html += '</div>';
+                                
+                                html += '</div>';
+                                html += '</div>';
+                            }
+                            
+                            html += '</div>';
+                            html += '</div>';
+                            html += '</div></div>';
+                        }
+                    }
+                    
+                    if(html) {
+                        $('#fingerprint-list').html(html);
+                    } else {
+                        $('#fingerprint-list').html('<div class="layui-col-md12"><div class="layui-card"><div class="layui-card-body">未识别到指纹</div></div></div>');
+                    }
+                } else {
+                    $('#fingerprint-list').html('<div class="layui-col-md12"><div class="layui-card"><div class="layui-card-body">未识别到指纹</div></div></div>');
+                }
+                
+                // 过滤状态码的辅助函数
+                function _isStatusCode(text) {
+                    if(typeof text !== 'string') return false;
+                    
+                    // 先删除常见的括号和空格
+                    text = text.trim().replace(/[\[\]\(\)\{\}]/g, '');
+                    
+                    // 检查是否为3位数字且首位为1-5
+                    if(/^[1-5]\d{2}$/.test(text)) {
+                        return true;
+                    }
+                    
+                    // 检查是否包含常见的状态码模式
+                    if(/http/i.test(text) && /\b(200|301|302|404|500)\b/.test(text)) {
+                        return true;
+                    }
+                    
+                    return false;
+                }
+                
+                // 填充原始输出
+                $('#raw-output').text(result.raw_output || '无原始输出');
+            } catch (e) {
+                console.error('Error parsing result:', e);
+                // 如果解析失败，显示原始数据
+                $('#result-title').text('-');
+                $('#result-web-server').text('-');
+                $('#fingerprint-list').html('<li>数据解析错误</li>');
+                $('#raw-output').text(typeof scan.result === 'string' ? scan.result : JSON.stringify(scan.result, null, 2));
+            }
+        } else {
+            // 无结果
+            $('#result-title').text('-');
+            $('#result-web-server').text('-');
+            $('#fingerprint-list').html('<li>无指纹识别结果</li>');
+            $('#raw-output').text('无原始输出');
+        }
+    }
+});
+</script>
+{% endblock %}

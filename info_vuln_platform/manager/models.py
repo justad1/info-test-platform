@@ -151,3 +151,79 @@ class BaseInfoQuery(models.Model):
     
     def __str__(self):
         return f"{self.domain} - {self.query_time}"
+
+class PortScan(models.Model):
+    """端口扫描记录"""
+    target = models.CharField(max_length=255, verbose_name='扫描目标')
+    scan_type = models.CharField(max_length=50, verbose_name='扫描类型', default='connect')
+    ports = models.TextField(blank=True, null=True, verbose_name='端口范围')
+    status = models.CharField(max_length=20, verbose_name='扫描状态', 
+                            choices=[
+                                ('pending', '等待中'),
+                                ('running', '扫描中'),
+                                ('completed', '已完成'),
+                                ('failed', '失败')
+                            ])
+    result = models.TextField(blank=True, null=True, verbose_name='扫描结果')
+    start_time = models.DateTimeField(auto_now_add=True, verbose_name='开始时间')
+    end_time = models.DateTimeField(null=True, blank=True, verbose_name='结束时间')
+    
+    class Meta:
+        verbose_name = '端口扫描'
+        verbose_name_plural = '端口扫描'
+        ordering = ['-start_time']
+    
+    def __str__(self):
+        return f"{self.target} - {self.start_time}"
+
+class DirScan(models.Model):
+    """目录扫描记录"""
+    target = models.CharField(max_length=255, verbose_name='扫描目标')
+    wordlist = models.CharField(max_length=100, verbose_name='字典类型', default='common')
+    status = models.CharField(max_length=20, verbose_name='扫描状态', 
+                            choices=[
+                                ('pending', '等待中'),
+                                ('running', '扫描中'),
+                                ('completed', '已完成'),
+                                ('failed', '失败')
+                            ])
+    result = models.TextField(blank=True, null=True, verbose_name='扫描结果')
+    start_time = models.DateTimeField(auto_now_add=True, verbose_name='开始时间')
+    end_time = models.DateTimeField(null=True, blank=True, verbose_name='结束时间')
+    
+    # 扫描配置
+    extensions = models.CharField(max_length=255, blank=True, null=True, verbose_name='文件扩展名')
+    threads = models.IntegerField(default=10, verbose_name='线程数')
+    timeout = models.IntegerField(default=10, verbose_name='超时时间(秒)')
+    status_codes = models.CharField(max_length=100, blank=True, null=True, verbose_name='状态码')
+    user_agent = models.CharField(max_length=255, blank=True, null=True, verbose_name='User-Agent')
+    
+    class Meta:
+        verbose_name = '目录扫描'
+        verbose_name_plural = '目录扫描'
+        ordering = ['-start_time']
+    
+    def __str__(self):
+        return f"{self.target} - {self.start_time}"
+
+class FingerprintScan(models.Model):
+    """指纹识别扫描记录"""
+    target = models.CharField(max_length=255, verbose_name='扫描目标')
+    status = models.CharField(max_length=20, verbose_name='扫描状态', 
+                            choices=[
+                                ('pending', '等待中'),
+                                ('running', '扫描中'),
+                                ('completed', '已完成'),
+                                ('failed', '失败')
+                            ])
+    result = models.TextField(blank=True, null=True, verbose_name='扫描结果')
+    start_time = models.DateTimeField(auto_now_add=True, verbose_name='开始时间')
+    end_time = models.DateTimeField(null=True, blank=True, verbose_name='结束时间')
+    
+    class Meta:
+        verbose_name = '指纹识别'
+        verbose_name_plural = '指纹识别'
+        ordering = ['-start_time']
+    
+    def __str__(self):
+        return f"{self.target} - {self.start_time}"

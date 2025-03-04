@@ -12,7 +12,7 @@
                 <div class="layui-card-header">
                     <div class="layui-row">
                         <div class="layui-col-md6">
-                            基础信息查询
+                            <i class="layui-icon layui-icon-search"></i> 基础信息查询
                         </div>
                     </div>
                 </div>
@@ -22,15 +22,15 @@
                         <div class="layui-row layui-col-space10">
                             <div class="layui-col-md4">
                                 <div class="layui-form-item">
-                                    <label class="layui-form-label">域名</label>
+                                    <label class="layui-form-label"><i class="layui-icon layui-icon-website"></i> 域名</label>
                                     <div class="layui-input-block">
                                         <input type="text" id="domain-input" name="domain" placeholder="请输入域名，如：example.com" autocomplete="off" class="layui-input">
                                     </div>
                                 </div>
                             </div>
                             <div class="layui-col-md2">
-                                <button class="layui-btn" id="query-btn">
-                                    <i class="layui-icon">&#xe615;</i> 查询
+                                <button class="layui-btn layui-btn-normal" id="query-btn">
+                                    <i class="layui-icon layui-icon-search"></i> 查询
                                 </button>
                             </div>
                         </div>
@@ -40,27 +40,33 @@
                     <div id="result-container" style="display: none;">
                         <div class="layui-tab layui-tab-brief" lay-filter="info-tab">
                             <ul class="layui-tab-title">
-                                <li class="layui-this">CDN检测</li>
-                                <li>WHOIS信息</li>
-                                <li>备案信息</li>
+                                <li class="layui-this"><i class="layui-icon layui-icon-cloud"></i> CDN检测</li>
+                                <li><i class="layui-icon layui-icon-list"></i> WHOIS信息</li>
+                                <li><i class="layui-icon layui-icon-template-1"></i> 备案信息</li>
                             </ul>
                             <div class="layui-tab-content">
                                 <!-- CDN检测结果 -->
                                 <div class="layui-tab-item layui-show">
                                     <div class="layui-card">
-                                        <div class="layui-card-header">CDN检测结果</div>
+                                        <div class="layui-card-header">
+                                            <i class="layui-icon layui-icon-cloud"></i> CDN检测结果
+                                        </div>
                                         <div class="layui-card-body">
                                             <div class="layui-form">
                                                 <div class="layui-form-item">
                                                     <label class="layui-form-label">是否有CDN</label>
                                                     <div class="layui-input-block">
-                                                        <input type="text" id="has-cdn" readonly class="layui-input">
+                                                        <input type="text" id="has-cdn" readonly class="layui-input layui-disabled">
                                                     </div>
                                                 </div>
                                                 <div class="layui-form-item">
                                                     <label class="layui-form-label">IP列表</label>
                                                     <div class="layui-input-block">
-                                                        <textarea id="ip-list" readonly class="layui-textarea" style="height: 150px;"></textarea>
+                                                        <div class="layui-card" style="margin-bottom: 0;">
+                                                            <div class="layui-card-body layui-bg-gray" style="padding: 10px;">
+                                                                <pre id="ip-list" style="margin: 0; white-space: pre-wrap; word-wrap: break-word;"></pre>
+                                                            </div>
+                                                        </div>
                                                     </div>
                                                 </div>
                                             </div>
@@ -71,9 +77,18 @@
                                 <!-- WHOIS信息 -->
                                 <div class="layui-tab-item">
                                     <div class="layui-card">
-                                        <div class="layui-card-header">WHOIS信息</div>
+                                        <div class="layui-card-header">
+                                            <i class="layui-icon layui-icon-list"></i> WHOIS信息
+                                            <button class="layui-btn layui-btn-xs layui-btn-normal" style="float: right;" onclick="copyWhoisInfo()">
+                                                <i class="layui-icon layui-icon-file"></i> 复制
+                                            </button>
+                                        </div>
                                         <div class="layui-card-body">
-                                            <pre id="whois-info" style="background-color: #f2f2f2; padding: 15px; border-radius: 5px; max-height: 500px; overflow-y: auto;"></pre>
+                                            <div class="layui-card" style="margin-bottom: 0;">
+                                                <div class="layui-card-body layui-bg-gray" style="padding: 15px;">
+                                                    <pre id="whois-info" style="margin: 0; white-space: pre-wrap; word-wrap: break-word; max-height: 500px; overflow-y: auto;"></pre>
+                                                </div>
+                                            </div>
                                         </div>
                                     </div>
                                 </div>
@@ -81,9 +96,18 @@
                                 <!-- 备案信息 -->
                                 <div class="layui-tab-item">
                                     <div class="layui-card">
-                                        <div class="layui-card-header">备案信息</div>
+                                        <div class="layui-card-header">
+                                            <i class="layui-icon layui-icon-template-1"></i> 备案信息
+                                            <button class="layui-btn layui-btn-xs layui-btn-normal" style="float: right;" onclick="copyIcpInfo()">
+                                                <i class="layui-icon layui-icon-file"></i> 复制
+                                            </button>
+                                        </div>
                                         <div class="layui-card-body">
-                                            <pre id="icp-info" style="background-color: #f2f2f2; padding: 15px; border-radius: 5px; max-height: 500px; overflow-y: auto;"></pre>
+                                            <div class="layui-card" style="margin-bottom: 0;">
+                                                <div class="layui-card-body layui-bg-gray" style="padding: 15px;">
+                                                    <pre id="icp-info" style="margin: 0; white-space: pre-wrap; word-wrap: break-word; max-height: 500px; overflow-y: auto;"></pre>
+                                                </div>
+                                            </div>
                                         </div>
                                     </div>
                                 </div>
@@ -93,24 +117,28 @@
                     
                     <!-- 查询历史 -->
                     <div class="layui-card" style="margin-top: 20px;">
-                        <div class="layui-card-header">查询历史</div>
+                        <div class="layui-card-header">
+                            <i class="layui-icon layui-icon-log"></i> 查询历史
+                        </div>
                         <div class="layui-card-body">
                             <div class="layui-form layui-form-pane" style="margin-bottom: 20px;">
                                 <div class="layui-row layui-col-space10">
                                     <div class="layui-col-md3">
                                         <div class="layui-form-item">
-                                            <label class="layui-form-label">域名</label>
+                                            <label class="layui-form-label">
+                                                <i class="layui-icon layui-icon-search"></i> 域名
+                                            </label>
                                             <div class="layui-input-block">
                                                 <input type="text" id="history-domain" name="history-domain" placeholder="请输入域名" autocomplete="off" class="layui-input">
                                             </div>
                                         </div>
                                     </div>
                                     <div class="layui-col-md2">
-                                        <button class="layui-btn" id="history-search-btn">
-                                            <i class="layui-icon">&#xe615;</i> 搜索
+                                        <button class="layui-btn layui-btn-normal" id="history-search-btn">
+                                            <i class="layui-icon layui-icon-search"></i> 搜索
                                         </button>
                                         <button class="layui-btn layui-btn-primary" id="history-reset-btn">
-                                            <i class="layui-icon">&#xe669;</i> 重置
+                                            <i class="layui-icon layui-icon-refresh"></i> 重置
                                         </button>
                                     </div>
                                 </div>
@@ -122,7 +150,9 @@
                             <!-- 查看详情按钮 -->
                             <script type="text/html" id="history-toolbar">
                                 <div class="layui-btn-container">
-                                    <button class="layui-btn layui-btn-sm" lay-event="view"><i class="layui-icon">&#xe60b;</i> 查看详情</button>
+                                    <button class="layui-btn layui-btn-normal layui-btn-sm" lay-event="view">
+                                        <i class="layui-icon layui-icon-search"></i> 查看详情
+                                    </button>
                                 </div>
                             </script>
                         </div>
@@ -152,7 +182,9 @@ layui.use(['table', 'form', 'layer', 'element'], function(){
             {field: 'id', title: 'ID', width: 80, sort: true},
             {field: 'domain', title: '域名', width: 200},
             {field: 'has_cdn', title: '是否有CDN', width: 120, templet: function(d){
-                return d.has_cdn ? '<span style="color: #FF5722;">是</span>' : '<span style="color: #009688;">否</span>';
+                return d.has_cdn ? 
+                    '<span class="layui-badge layui-bg-orange">是</span>' : 
+                    '<span class="layui-badge layui-bg-gray">否</span>';
             }},
             {field: 'query_time', title: '查询时间', width: 180, sort: true},
             {fixed: 'right', title: '操作', toolbar: '#history-toolbar', width: 120}
@@ -211,7 +243,12 @@ layui.use(['table', 'form', 'layer', 'element'], function(){
                 // 显示结果
                 $('#domain-input').val(data.domain);
                 $('#has-cdn').val(data.has_cdn ? '是' : '否');
-                $('#ip-list').val(ipList.join('\n'));
+                if(data.has_cdn) {
+                    $('#has-cdn').addClass('layui-bg-orange').removeClass('layui-bg-gray');
+                } else {
+                    $('#has-cdn').addClass('layui-bg-gray').removeClass('layui-bg-orange');
+                }
+                $('#ip-list').html(ipList.join('\n'));
                 $('#whois-info').html(whoisInfo ? JSON.stringify(whoisInfo, null, 2) : '无数据');
                 $('#icp-info').html(icpInfo ? JSON.stringify(icpInfo, null, 2) : '无数据');
                 
@@ -252,7 +289,12 @@ layui.use(['table', 'form', 'layer', 'element'], function(){
                 if(res.code === 0){
                     // 显示结果
                     $('#has-cdn').val(res.data.has_cdn ? '是' : '否');
-                    $('#ip-list').val(res.data.ip_list.join('\n'));
+                    if(res.data.has_cdn) {
+                        $('#has-cdn').addClass('layui-bg-orange').removeClass('layui-bg-gray');
+                    } else {
+                        $('#has-cdn').addClass('layui-bg-gray').removeClass('layui-bg-orange');
+                    }
+                    $('#ip-list').html(res.data.ip_list.join('\n'));
                     $('#whois-info').html(res.data.whois_info ? JSON.stringify(res.data.whois_info, null, 2) : '无数据');
                     $('#icp-info').html(res.data.icp_info ? JSON.stringify(res.data.icp_info, null, 2) : '无数据');
                     
@@ -262,17 +304,44 @@ layui.use(['table', 'form', 'layer', 'element'], function(){
                     // 刷新历史记录表格
                     historyTable.reload();
                     
-                    layer.msg('查询成功');
+                    layer.msg('查询成功', {icon: 1});
                 } else {
-                    layer.msg('查询失败：' + res.msg);
+                    layer.msg('查询失败：' + res.msg, {icon: 2});
                 }
             },
             error: function(xhr){
                 layer.close(loadIndex);
-                layer.msg('请求失败：' + xhr.statusText);
+                layer.msg('请求失败：' + xhr.statusText, {icon: 2});
             }
         });
     });
 });
+
+// 复制WHOIS信息
+function copyWhoisInfo() {
+    var whoisInfo = document.getElementById('whois-info').innerText;
+    copyToClipboard(whoisInfo, 'WHOIS信息已复制到剪贴板');
+}
+
+// 复制备案信息
+function copyIcpInfo() {
+    var icpInfo = document.getElementById('icp-info').innerText;
+    copyToClipboard(icpInfo, '备案信息已复制到剪贴板');
+}
+
+// 复制文本到剪贴板
+function copyToClipboard(text, successMsg) {
+    var textarea = document.createElement('textarea');
+    textarea.value = text;
+    document.body.appendChild(textarea);
+    textarea.select();
+    try {
+        document.execCommand('copy');
+        layer.msg(successMsg, {icon: 1});
+    } catch (err) {
+        layer.msg('复制失败：' + err, {icon: 2});
+    }
+    document.body.removeChild(textarea);
+}
 </script>
 {% endblock %}

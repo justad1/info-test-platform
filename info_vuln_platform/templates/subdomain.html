@@ -18,6 +18,9 @@
                             <button class="layui-btn layui-btn-sm layui-btn-normal" id="add-subdomain-btn">
                                 <i class="layui-icon">&#xe654;</i> 添加子域名
                             </button>
+                            <button class="layui-btn layui-btn-sm layui-btn-danger" id="scan-subdomain-btn">
+                                <i class="layui-icon">&#xe615;</i> 子域名扫描
+                            </button>
                         </div>
                     </div>
                 </div>
@@ -284,6 +287,12 @@ layui.use(['table', 'form', 'jquery', 'layer'], function(){
                 subdomain: ''
             }
         });
+    });
+    
+    // 子域名扫描按钮事件
+    $('#scan-subdomain-btn').on('click', function(){
+        // 跳转到子域名扫描页面
+        window.location.href = '/manager/subdomain/scan/';
     });
 });
 </script>

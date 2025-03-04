@@ -1,0 +1,637 @@
+{% extends 'base.html' %}
+
+{% block title %}端口扫描{% endblock %}
+
+{% block page_title %}端口扫描{% endblock %}
+
+{% block content %}
+<div class="layui-fluid">
+    <div class="layui-row layui-col-space15">
+        <div class="layui-col-md12">
+            <div class="layui-card">
+                <div class="layui-card-header">
+                    <i class="layui-icon layui-icon-console"></i> 端口扫描
+                    <div class="layui-btn-group" style="float: right;">
+                        <button type="button" class="layui-btn layui-btn-primary layui-btn-sm" id="tab-scan">
+                            <i class="layui-icon layui-icon-search"></i> 扫描
+                        </button>
+                        <button type="button" class="layui-btn layui-btn-primary layui-btn-sm" id="tab-history">
+                            <i class="layui-icon layui-icon-log"></i> 历史记录
+                        </button>
+                    </div>
+                </div>
+                <div class="layui-card-body">
+                    <!-- 扫描配置表单 -->
+                    <form class="layui-form layui-form-pane" lay-filter="scan-form">
+                        <div class="layui-row layui-col-space15">
+                            <!-- 目标配置 -->
+                            <div class="layui-col-md6">
+                                <div class="layui-card">
+                                    <div class="layui-card-header">
+                                        <i class="layui-icon layui-icon-target"></i> 目标配置
+                                    </div>
+                                    <div class="layui-card-body">
+                                        <div class="layui-form-item layui-form-text">
+                                            <label class="layui-form-label">目标主机</label>
+                                            <div class="layui-input-block">
+                                                <textarea name="hosts" placeholder="输入目标主机，每行一个&#10;支持IP、域名或IP范围，如：&#10;example.com&#10;192.168.1.1&#10;192.168.1.1-192.168.1.254" class="layui-textarea" style="height: 150px;"></textarea>
+                                            </div>
+                                        </div>
+                                        <div class="layui-form-item">
+                                            <label class="layui-form-label">排除目标</label>
+                                            <div class="layui-input-block">
+                                                <textarea name="exclude_hosts" placeholder="输入要排除的目标，每行一个" class="layui-textarea" style="height: 100px;"></textarea>
+                                            </div>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                            
+                            <!-- 端口配置 -->
+                            <div class="layui-col-md6">
+                                <div class="layui-card">
+                                    <div class="layui-card-header">
+                                        <i class="layui-icon layui-icon-template-1"></i> 端口配置
+                                    </div>
+                                    <div class="layui-card-body">
+                                        <div class="layui-form-item">
+                                            <label class="layui-form-label">端口范围</label>
+                                            <div class="layui-input-block">
+                                                <input type="radio" name="port_type" value="top" title="常用端口" checked>
+                                                <input type="radio" name="port_type" value="custom" title="自定义">
+                                            </div>
+                                        </div>
+                                        
+                                        <div class="layui-form-item" id="top-ports-group">
+                                            <label class="layui-form-label">端口数量</label>
+                                            <div class="layui-input-block">
+                                                <select name="top_ports">
+                                                    <option value="100">Top 100</option>
+                                                    <option value="1000">Top 1000</option>
+                                                    <option value="full">全部端口</option>
+                                                </select>
+                                            </div>
+                                        </div>
+                                        
+                                        <div class="layui-form-item" id="custom-ports-group" style="display: none;">
+                                            <label class="layui-form-label">自定义端口</label>
+                                            <div class="layui-input-block">
+                                                <input type="text" name="custom_ports" placeholder="输入端口范围，如：80,443,8000-8100" class="layui-input">
+                                            </div>
+                                        </div>
+                                        
+                                        <div class="layui-form-item">
+                                            <label class="layui-form-label">排除端口</label>
+                                            <div class="layui-input-block">
+                                                <input type="text" name="exclude_ports" placeholder="输入要排除的端口，如：80,443" class="layui-input">
+                                            </div>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                            
+                            <!-- 高级选项 -->
+                            <div class="layui-col-md12">
+                                <div class="layui-card">
+                                    <div class="layui-card-header">
+                                        <i class="layui-icon layui-icon-set"></i> 高级选项
+                                    </div>
+                                    <div class="layui-card-body">
+                                        <div class="layui-form-item" pane>
+                                            <label class="layui-form-label">扫描选项</label>
+                                            <div class="layui-input-block">
+                                                <input type="checkbox" name="scan_all_ips" title="扫描所有关联IP" lay-skin="primary">
+                                                <input type="checkbox" name="exclude_cdn" title="跳过CDN" lay-skin="primary">
+                                                <input type="checkbox" name="service_detection" title="服务识别" lay-skin="primary">
+                                            </div>
+                                        </div>
+                                        
+                                        <div class="layui-form-item">
+                                            <div class="layui-inline">
+                                                <label class="layui-form-label">并发数</label>
+                                                <div class="layui-input-inline" style="width: 100px;">
+                                                    <input type="number" name="concurrency" value="25" class="layui-input">
+                                                </div>
+                                            </div>
+                                            <div class="layui-inline">
+                                                <label class="layui-form-label">超时时间</label>
+                                                <div class="layui-input-inline" style="width: 100px;">
+                                                    <input type="number" name="timeout" value="1000" class="layui-input">
+                                                </div>
+                                                <div class="layui-form-mid layui-word-aux">毫秒</div>
+                                            </div>
+                                            <div class="layui-inline">
+                                                <label class="layui-form-label">重试次数</label>
+                                                <div class="layui-input-inline" style="width: 100px;">
+                                                    <input type="number" name="retries" value="3" class="layui-input">
+                                                </div>
+                                            </div>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                        
+                        <div class="layui-form-item">
+                            <div class="layui-input-block">
+                                <button type="button" class="layui-btn layui-btn-normal" lay-submit lay-filter="start-scan">
+                                    <i class="layui-icon layui-icon-search"></i> 开始扫描
+                                </button>
+                                <button type="reset" class="layui-btn layui-btn-primary">
+                                    <i class="layui-icon layui-icon-refresh"></i> 重置
+                                </button>
+                            </div>
+                        </div>
+                    </form>
+                    
+                    <!-- 扫描结果 -->
+                    <div class="layui-card" id="result-container" style="display: none;">
+                        <div class="layui-card-header">
+                            <i class="layui-icon layui-icon-chart"></i> 扫描结果
+                            <button class="layui-btn layui-btn-xs layui-btn-normal" style="float: right;" id="export-btn">
+                                <i class="layui-icon layui-icon-export"></i> 导出结果
+                            </button>
+                        </div>
+                        <div class="layui-card-body">
+                            <!-- 结果统计 -->
+                            <div class="layui-row layui-col-space15">
+                                <div class="layui-col-md3">
+                                    <div class="layui-card">
+                                        <div class="layui-card-body" style="text-align: center;">
+                                            <h3>扫描主机数</h3>
+                                            <h2 id="host-count">0</h2>
+                                        </div>
+                                    </div>
+                                </div>
+                                <div class="layui-col-md3">
+                                    <div class="layui-card">
+                                        <div class="layui-card-body" style="text-align: center;">
+                                            <h3>开放端口数</h3>
+                                            <h2 id="port-count">0</h2>
+                                        </div>
+                                    </div>
+                                </div>
+                                <div class="layui-col-md3">
+                                    <div class="layui-card">
+                                        <div class="layui-card-body" style="text-align: center;">
+                                            <h3>已用时间</h3>
+                                            <h2 id="scan-time">0s</h2>
+                                        </div>
+                                    </div>
+                                </div>
+                                <div class="layui-col-md3">
+                                    <div class="layui-card">
+                                        <div class="layui-card-body" style="text-align: center;">
+                                            <h3>扫描状态</h3>
+                                            <h2 id="scan-status">未开始</h2>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                            
+                            <!-- 端口分布图 -->
+                            <div class="layui-row layui-col-space15">
+                                <div class="layui-col-md6">
+                                    <div class="layui-card">
+                                        <div class="layui-card-header">端口分布</div>
+                                        <div class="layui-card-body">
+                                            <div id="port-distribution" style="height: 300px;"></div>
+                                        </div>
+                                    </div>
+                                </div>
+                                <div class="layui-col-md6">
+                                    <div class="layui-card">
+                                        <div class="layui-card-header">服务分布</div>
+                                        <div class="layui-card-body">
+                                            <div id="service-distribution" style="height: 300px;"></div>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                            
+                            <!-- 详细结果表格 -->
+                            <table id="result-table" lay-filter="result-table"></table>
+                        </div>
+                    </div>
+                </div>
+                
+                <!-- 历史记录表格 -->
+                <div class="layui-card" id="history-container" style="display: none;">
+                    <div class="layui-card-header">
+                        <i class="layui-icon layui-icon-log"></i> 扫描历史记录
+                        <button class="layui-btn layui-btn-xs layui-btn-normal" style="float: right;" id="refresh-history">
+                            <i class="layui-icon layui-icon-refresh"></i> 刷新
+                        </button>
+                    </div>
+                    <div class="layui-card-body">
+                        <table id="history-table" lay-filter="history-table"></table>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- 历史记录表格工具栏 -->
+<script type="text/html" id="history-table-toolbar">
+    <a class="layui-btn layui-btn-xs layui-btn-normal" lay-event="view"><i class="layui-icon layui-icon-search"></i> 查看</a>
+</script>
+{% endblock %}
+
+{% block scripts %}
+<script src="https://cdn.jsdelivr.net/npm/echarts@5.4.3/dist/echarts.min.js"></script>
+<script>
+layui.use(['form', 'table', 'layer'], function(){
+    var form = layui.form;
+    var table = layui.table;
+    var layer = layui.layer;
+    var $ = layui.$;
+    
+    // 端口配置切换
+    form.on('radio(port_type)', function(data){
+        if(data.value === 'top') {
+            $('#top-ports-group').show();
+            $('#custom-ports-group').hide();
+        } else {
+            $('#top-ports-group').hide();
+            $('#custom-ports-group').show();
+        }
+    });
+    
+    // 初始化结果表格
+    var resultTable = table.render({
+        elem: '#result-table',
+        cols: [[
+            {field: 'host', title: '主机', width: 180},
+            {field: 'port', title: '端口', width: 100},
+            {field: 'protocol', title: '协议', width: 100},
+            {field: 'service', title: '服务', width: 120},
+            {field: 'version', title: '版本', width: 120},
+            {field: 'banner', title: '横幅信息'}
+        ]],
+        data: [],
+        page: true,
+        limit: 10,
+        limits: [10, 20, 50, 100]
+    });
+    
+    // 开始扫描
+    form.on('submit(start-scan)', function(data){
+        var loadIndex = layer.load(2);
+        $('#result-container').show();
+        $('#scan-status').html('<span class="layui-badge layui-bg-blue">扫描中</span>');
+        
+        // 构建请求参数
+        var params = {
+            hosts: data.field.hosts,  // 直接传递文本内容，后端会处理分割
+            exclude_hosts: data.field.exclude_hosts,
+            port_type: data.field.port_type,
+            top_ports: data.field.top_ports,
+            custom_ports: data.field.custom_ports,
+            exclude_ports: data.field.exclude_ports,
+            scan_all_ips: data.field.scan_all_ips === 'on',
+            exclude_cdn: data.field.exclude_cdn === 'on',
+            service_detection: data.field.service_detection === 'on',
+            concurrency: parseInt(data.field.concurrency) || 25,
+            timeout: parseInt(data.field.timeout) || 1000,
+            retries: parseInt(data.field.retries) || 3
+        };
+        
+        // 发送扫描请求
+        $.ajax({
+            url: '/manager/api/portscan/',
+            type: 'POST',
+            contentType: 'application/json',
+            data: JSON.stringify(params),
+            success: function(res){
+                layer.close(loadIndex);
+                if(res.code === 0){
+                    updateScanResults(res.data);
+                    layer.msg('扫描完成', {icon: 1});
+                } else {
+                    $('#scan-status').html('<span class="layui-badge layui-bg-red">失败</span>');
+                    layer.msg('扫描失败：' + res.msg, {icon: 2});
+                }
+            },
+            error: function(xhr){
+                layer.close(loadIndex);
+                $('#scan-status').html('<span class="layui-badge layui-bg-red">失败</span>');
+                layer.msg('请求失败：' + xhr.statusText, {icon: 2});
+            }
+        });
+        
+        return false;
+    });
+    
+    // 更新扫描结果
+    function updateScanResults(data) {
+        // 更新统计信息
+        $('#host-count').text(data.stats.host_count);
+        $('#port-count').text(data.stats.port_count);
+        $('#scan-time').text(data.stats.duration);
+        $('#scan-status').html('<span class="layui-badge layui-bg-green">已完成</span>');
+        
+        // 更新表格数据
+        resultTable.reload({
+            data: data.results
+        });
+        
+        // 更新端口分布图
+        updatePortDistribution(data.stats.port_distribution);
+        
+        // 更新服务分布图
+        updateServiceDistribution(data.stats.service_distribution);
+    }
+    
+    // 更新端口分布图
+    function updatePortDistribution(data) {
+        var chart = echarts.init(document.getElementById('port-distribution'));
+        var option = {
+            tooltip: {
+                trigger: 'item'
+            },
+            legend: {
+                orient: 'vertical',
+                left: 'left'
+            },
+            series: [
+                {
+                    name: '端口分布',
+                    type: 'pie',
+                    radius: '50%',
+                    data: Object.entries(data).map(([port, count]) => ({
+                        name: port,
+                        value: count
+                    })),
+                    emphasis: {
+                        itemStyle: {
+                            shadowBlur: 10,
+                            shadowOffsetX: 0,
+                            shadowColor: 'rgba(0, 0, 0, 0.5)'
+                        }
+                    }
+                }
+            ]
+        };
+        chart.setOption(option);
+    }
+    
+    // 更新服务分布图
+    function updateServiceDistribution(data) {
+        var chart = echarts.init(document.getElementById('service-distribution'));
+        var option = {
+            tooltip: {
+                trigger: 'axis',
+                axisPointer: {
+                    type: 'shadow'
+                }
+            },
+            legend: {
+                data: ['服务数量']
+            },
+            grid: {
+                left: '3%',
+                right: '4%',
+                bottom: '3%',
+                containLabel: true
+            },
+            xAxis: [
+                {
+                    type: 'category',
+                    data: Object.keys(data),
+                    axisTick: {
+                        alignWithLabel: true
+                    }
+                }
+            ],
+            yAxis: [
+                {
+                    type: 'value'
+                }
+            ],
+            series: [
+                {
+                    name: '服务数量',
+                    type: 'bar',
+                    barWidth: '60%',
+                    data: Object.values(data)
+                }
+            ]
+        };
+        chart.setOption(option);
+    }
+    
+    // 导出结果
+    $('#export-btn').on('click', function(){
+        window.location.href = '/manager/api/portscan/export/';
+    });
+    
+    // 标签切换
+    $('#tab-scan').on('click', function(){
+        $(this).removeClass('layui-btn-primary').siblings().addClass('layui-btn-primary');
+        $('#result-container').hide();
+        $('#history-container').hide();
+        $('.layui-form').show();
+    });
+    
+    $('#tab-history').on('click', function(){
+        $(this).removeClass('layui-btn-primary').siblings().addClass('layui-btn-primary');
+        $('.layui-form').hide();
+        $('#result-container').hide();
+        $('#history-container').show();
+        // 加载历史记录
+        table.reload('history-table');
+    });
+    
+    // 加载历史记录表格
+    var historyTable = table.render({
+        elem: '#history-table',
+        url: '/manager/api/portscan/history/',
+        toolbar: '#history-table-toolbar',
+        defaultToolbar: ['filter', 'exports', 'print'],
+        cols: [[
+            {type: 'checkbox', fixed: 'left'},
+            {field: 'id', title: 'ID', width: 80, sort: true},
+            {field: 'target', title: '扫描目标', width: 200},
+            {field: 'ports', title: '端口范围', width: 150},
+            {field: 'status', title: '状态', width: 100, templet: function(d){
+                if(d.status === 'completed') {
+                    return '<span class="layui-badge layui-bg-green">已完成</span>';
+                } else if(d.status === 'running') {
+                    return '<span class="layui-badge layui-bg-blue">扫描中</span>';
+                } else if(d.status === 'failed') {
+                    return '<span class="layui-badge">失败</span>';
+                } else {
+                    return '<span class="layui-badge layui-bg-orange">等待中</span>';
+                }
+            }},
+            {field: 'port_count', title: '开放端口数', width: 120, sort: true},
+            {field: 'start_time', title: '开始时间', width: 180, sort: true},
+            {field: 'end_time', title: '结束时间', width: 180, sort: true},
+            {fixed: 'right', title: '操作', toolbar: '#history-table-toolbar', width: 150}
+        ]],
+        page: true,
+        limit: 10,
+        limits: [10, 20, 50, 100],
+        text: {
+            none: '暂无扫描历史'
+        }
+    });
+    
+    // 表格工具栏事件
+    table.on('tool(history-table)', function(obj){
+        var data = obj.data;
+        if(obj.event === 'view'){
+            // 查看历史记录详情
+            layer.open({
+                type: 1,
+                title: '扫描详情 - ' + data.target,
+                area: ['90%', '90%'],
+                content: '<div class="layui-fluid" id="history-detail-container" style="padding: 15px;">' +
+                         '<div class="layui-row layui-col-space15">' +
+                         '<div class="layui-col-md12"><div class="layui-card"><div class="layui-card-header">基本信息</div>' +
+                         '<div class="layui-card-body">' +
+                         '<p><strong>扫描目标：</strong>' + data.target + '</p>' +
+                         '<p><strong>端口范围：</strong>' + data.ports + '</p>' +
+                         '<p><strong>开始时间：</strong>' + data.start_time + '</p>' +
+                         '<p><strong>结束时间：</strong>' + data.end_time + '</p>' +
+                         '<p><strong>状态：</strong>' + data.status + '</p>' +
+                         '</div></div></div>' +
+                         '<div class="layui-col-md6"><div class="layui-card"><div class="layui-card-header">端口分布</div>' +
+                         '<div class="layui-card-body"><div id="history-port-chart" style="width: 100%; height: 300px;"></div></div></div></div>' +
+                         '<div class="layui-col-md6"><div class="layui-card"><div class="layui-card-header">服务分布</div>' +
+                         '<div class="layui-card-body"><div id="history-service-chart" style="width: 100%; height: 300px;"></div></div></div></div>' +
+                         '<div class="layui-col-md12"><div class="layui-card"><div class="layui-card-header">扫描结果</div>' +
+                         '<div class="layui-card-body"><table id="history-result-table" lay-filter="history-result-table"></table></div></div></div>' +
+                         '</div></div>',
+                success: function(layero, index){
+                    // 加载历史记录详情
+                    $.ajax({
+                        url: '/manager/api/portscan/history/' + data.id + '/',
+                        type: 'GET',
+                        dataType: 'json',
+                        success: function(res){
+                            if(res.code === 0){
+                                // 渲染结果表格
+                                table.render({
+                                    elem: '#history-result-table',
+                                    data: res.data.results || [],
+                                    cols: [[
+                                        {field: 'host', title: '主机', width: 180},
+                                        {field: 'port', title: '端口', width: 100, sort: true},
+                                        {field: 'protocol', title: '协议', width: 100},
+                                        {field: 'service', title: '服务', width: 150},
+                                        {field: 'version', title: '版本', width: 200},
+                                        {field: 'banner', title: '横幅信息'}
+                                    ]],
+                                    page: true,
+                                    limit: 15,
+                                    limits: [15, 30, 50, 100],
+                                    text: {
+                                        none: '暂无扫描结果'
+                                    }
+                                });
+                                
+                                // 渲染端口分布图
+                                if(res.data.port_distribution){
+                                    var portChart = echarts.init(document.getElementById('history-port-chart'));
+                                    var portData = [];
+                                    for(var port in res.data.port_distribution){
+                                        portData.push({
+                                            name: port,
+                                            value: res.data.port_distribution[port]
+                                        });
+                                    }
+                                    portChart.setOption({
+                                        title: {
+                                            text: '端口分布',
+                                            left: 'center'
+                                        },
+                                        tooltip: {
+                                            trigger: 'item',
+                                            formatter: '{a} <br/>{b}: {c} ({d}%)'
+                                        },
+                                        legend: {
+                                            orient: 'vertical',
+                                            left: 'left',
+                                            data: portData.map(function(item){ return item.name; })
+                                        },
+                                        series: [
+                                            {
+                                                name: '端口',
+                                                type: 'pie',
+                                                radius: '50%',
+                                                data: portData,
+                                                emphasis: {
+                                                    itemStyle: {
+                                                        shadowBlur: 10,
+                                                        shadowOffsetX: 0,
+                                                        shadowColor: 'rgba(0, 0, 0, 0.5)'
+                                                    }
+                                                }
+                                            }
+                                        ]
+                                    });
+                                }
+                                
+                                // 渲染服务分布图
+                                if(res.data.service_distribution){
+                                    var serviceChart = echarts.init(document.getElementById('history-service-chart'));
+                                    var serviceData = [];
+                                    for(var service in res.data.service_distribution){
+                                        serviceData.push({
+                                            name: service || '未知',
+                                            value: res.data.service_distribution[service]
+                                        });
+                                    }
+                                    serviceChart.setOption({
+                                        title: {
+                                            text: '服务分布',
+                                            left: 'center'
+                                        },
+                                        tooltip: {
+                                            trigger: 'item',
+                                            formatter: '{a} <br/>{b}: {c} ({d}%)'
+                                        },
+                                        legend: {
+                                            orient: 'vertical',
+                                            left: 'left',
+                                            data: serviceData.map(function(item){ return item.name; })
+                                        },
+                                        series: [
+                                            {
+                                                name: '服务',
+                                                type: 'pie',
+                                                radius: '50%',
+                                                data: serviceData,
+                                                emphasis: {
+                                                    itemStyle: {
+                                                        shadowBlur: 10,
+                                                        shadowOffsetX: 0,
+                                                        shadowColor: 'rgba(0, 0, 0, 0.5)'
+                                                    }
+                                                }
+                                            }
+                                        ]
+                                    });
+                                }
+                            } else {
+                                layer.msg('加载历史记录详情失败：' + res.msg, {icon: 2});
+                            }
+                        },
+                        error: function(xhr){
+                            layer.msg('加载历史记录详情失败：' + xhr.statusText, {icon: 2});
+                        }
+                    });
+                }
+            });
+        }
+    });
+    
+    // 刷新历史记录
+    $('#refresh-history').on('click', function(){
+        historyTable.reload();
+    });
+});
+</script>
+{% endblock %} 

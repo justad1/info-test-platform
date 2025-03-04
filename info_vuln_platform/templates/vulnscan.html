@@ -1,0 +1,531 @@
+{% extends 'base.html' %}
+
+{% block title %}Nuclei漏洞扫描{% endblock %}
+
+{% block page_title %}Nuclei漏洞扫描{% endblock %}
+
+{% block content %}
+<div class="layui-fluid">
+    <div class="layui-row layui-col-space15">
+        <div class="layui-col-md12">
+            <div class="layui-card">
+                <div class="layui-card-header">
+                    <i class="layui-icon layui-icon-console"></i> Nuclei漏洞扫描
+                    <div class="layui-btn-group" style="float: right;">
+                        <button type="button" class="layui-btn layui-btn-normal layui-btn-sm" id="tab-scan">
+                            <i class="layui-icon layui-icon-search"></i> 扫描
+                        </button>
+                        <button type="button" class="layui-btn layui-btn-primary layui-btn-sm" id="tab-history">
+                            <i class="layui-icon layui-icon-log"></i> 历史记录
+                        </button>
+                    </div>
+                </div>
+                <div class="layui-card-body">
+                    <!-- 扫描配置表单 -->
+                    <form class="layui-form layui-form-pane" lay-filter="scan-form">
+                        <div class="layui-row layui-col-space15">
+                            <!-- 目标配置 -->
+                            <div class="layui-col-md6">
+                                <div class="layui-card">
+                                    <div class="layui-card-header">
+                                        <i class="layui-icon layui-icon-target"></i> 目标配置
+                                    </div>
+                                    <div class="layui-card-body">
+                                        <div class="layui-form-item layui-form-text">
+                                            <label class="layui-form-label">目标URL</label>
+                                            <div class="layui-input-block">
+                                                <input type="text" name="target" placeholder="输入目标URL，如: https://example.com" class="layui-input" lay-verify="required" lay-reqtext="请输入目标URL">
+                                                <div class="layui-form-mid layui-word-aux">支持域名或IP地址，如：example.com 或 192.168.1.1</div>
+                                            </div>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                            
+                            <!-- 扫描配置 -->
+                            <div class="layui-col-md6">
+                                <div class="layui-card">
+                                    <div class="layui-card-header">
+                                        <i class="layui-icon layui-icon-set"></i> 扫描配置
+                                    </div>
+                                    <div class="layui-card-body">
+                                        <div class="layui-form-item">
+                                            <label class="layui-form-label">模板类型</label>
+                                            <div class="layui-input-block">
+                                                <select name="templates">
+                                                    <option value="all">全部模板</option>
+                                                    <option value="tech-detect">技术识别</option>
+                                                    <option value="cves">CVE漏洞</option>
+                                                    <option value="vulnerabilities">通用漏洞</option>
+                                                    <option value="exposures">敏感信息泄露</option>
+                                                    <option value="misconfiguration">错误配置</option>
+                                                </select>
+                                            </div>
+                                        </div>
+                                        <div class="layui-form-item">
+                                            <label class="layui-form-label">严重级别</label>
+                                            <div class="layui-input-block">
+                                                <select name="severity">
+                                                    <option value="all">全部级别</option>
+                                                    <option value="critical">严重 (Critical)</option>
+                                                    <option value="high">高危 (High)</option>
+                                                    <option value="medium">中危 (Medium)</option>
+                                                    <option value="low">低危 (Low)</option>
+                                                    <option value="info">信息 (Info)</option>
+                                                </select>
+                                            </div>
+                                        </div>
+                                        <div class="layui-form-item">
+                                            <label class="layui-form-label">线程数</label>
+                                            <div class="layui-input-block">
+                                                <input type="number" name="threads" value="10" class="layui-input">
+                                            </div>
+                                        </div>
+                                        <div class="layui-form-item">
+                                            <label class="layui-form-label">超时时间</label>
+                                            <div class="layui-input-block">
+                                                <input type="number" name="timeout" value="5" class="layui-input">
+                                                <div class="layui-form-mid layui-word-aux">分钟</div>
+                                            </div>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                        
+                        <div class="layui-form-item">
+                            <div class="layui-input-block">
+                                <button type="button" class="layui-btn layui-btn-normal layui-btn-lg" id="start-scan"><i class="layui-icon layui-icon-search"></i> 开始扫描</button>
+                                <button type="reset" class="layui-btn layui-btn-primary layui-btn-lg"><i class="layui-icon layui-icon-refresh"></i> 重置</button>
+                                <div class="layui-form-mid layui-word-aux">点击开始扫描后，请耐心等待结果，扫描过程可能需要几分钟时间</div>
+                            </div>
+                        </div>
+                    </form>
+                    
+                    <!-- 扫描结果 -->
+                    <div id="scan-result" style="display: none;">
+                        <div class="layui-card">
+                            <div class="layui-card-header">
+                                <i class="layui-icon layui-icon-chart"></i> 扫描结果
+                                <div class="layui-btn-group" style="float: right;">
+                                    <button type="button" class="layui-btn layui-btn-normal layui-btn-sm" id="export-results">
+                                        <i class="layui-icon layui-icon-export"></i> 导出结果
+                                    </button>
+                                    <button type="button" class="layui-btn layui-btn-primary layui-btn-sm" id="back-to-scan">
+                                        <i class="layui-icon layui-icon-return"></i> 返回
+                                    </button>
+                                </div>
+                            </div>
+                            <div class="layui-card-body">
+                                <!-- 统计信息 -->
+                                <div class="layui-row layui-col-space15">
+                                    <div class="layui-col-md3">
+                                        <div class="layui-card stat-card">
+                                            <div class="layui-card-header"><i class="layui-icon layui-icon-find-fill"></i> 发现漏洞数量</div>
+                                            <div class="layui-card-body big-font" id="vuln-count">0</div>
+                                        </div>
+                                    </div>
+                                    <div class="layui-col-md3">
+                                        <div class="layui-card stat-card">
+                                            <div class="layui-card-header"><i class="layui-icon layui-icon-time"></i> 扫描耗时</div>
+                                            <div class="layui-card-body big-font" id="scan-duration">0s</div>
+                                        </div>
+                                    </div>
+                                    <div class="layui-col-md6">
+                                        <div class="layui-card stat-card">
+                                            <div class="layui-card-header"><i class="layui-icon layui-icon-chart-screen"></i> 严重级别分布</div>
+                                            <div class="layui-card-body" id="severity-distribution">
+                                                <div class="layui-progress-container">
+                                                    <div class="severity-label"><span class="layui-badge layui-bg-red">严重 (Critical)</span></div>
+                                                    <div class="layui-progress" lay-showpercent="true">
+                                                        <div class="layui-progress-bar layui-bg-red" lay-percent="0%"></div>
+                                                    </div>
+                                                </div>
+                                                <div class="layui-progress-container">
+                                                    <div class="severity-label"><span class="layui-badge layui-bg-orange">高危 (High)</span></div>
+                                                    <div class="layui-progress" lay-showpercent="true">
+                                                        <div class="layui-progress-bar layui-bg-orange" lay-percent="0%"></div>
+                                                    </div>
+                                                </div>
+                                                <div class="layui-progress-container">
+                                                    <div class="severity-label"><span class="layui-badge layui-bg-blue">中危 (Medium)</span></div>
+                                                    <div class="layui-progress" lay-showpercent="true">
+                                                        <div class="layui-progress-bar layui-bg-blue" lay-percent="0%"></div>
+                                                    </div>
+                                                </div>
+                                                <div class="layui-progress-container">
+                                                    <div class="severity-label"><span class="layui-badge layui-bg-cyan">低危 (Low)</span></div>
+                                                    <div class="layui-progress" lay-showpercent="true">
+                                                        <div class="layui-progress-bar layui-bg-cyan" lay-percent="0%"></div>
+                                                    </div>
+                                                </div>
+                                                <div class="layui-progress-container">
+                                                    <div class="severity-label"><span class="layui-badge layui-bg-green">信息 (Info)</span></div>
+                                                    <div class="layui-progress" lay-showpercent="true">
+                                                        <div class="layui-progress-bar layui-bg-green" lay-percent="0%"></div>
+                                                    </div>
+                                                </div>
+                                            </div>
+                                        </div>
+                                    </div>
+                                </div>
+                                
+                                <!-- 漏洞列表 -->
+                                <div class="layui-card">
+                                    <div class="layui-card-header"><i class="layui-icon layui-icon-list"></i> 漏洞列表</div>
+                                    <div class="layui-card-body">
+                                        <table class="layui-table" id="vuln-table" lay-filter="vuln-table"></table>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                    
+                    <!-- 历史记录 -->
+                    <div id="scan-history" style="display: none;">
+                        <div class="layui-card">
+                            <div class="layui-card-header">
+                                <i class="layui-icon layui-icon-log"></i> 历史扫描记录
+                                <div class="layui-btn-group" style="float: right;">
+                                    <button type="button" class="layui-btn layui-btn-normal layui-btn-sm" id="refresh-history">
+                                        <i class="layui-icon layui-icon-refresh"></i> 刷新
+                                    </button>
+                                </div>
+                            </div>
+                            <div class="layui-card-body">
+                                <table class="layui-table" id="history-table" lay-filter="history-table"></table>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}
+
+{% block scripts %}
+<script>
+layui.use(['table', 'form', 'element', 'layer', 'util', 'dropdown'], function(){
+    var table = layui.table;
+    var form = layui.form;
+    var element = layui.element;
+    var layer = layui.layer;
+    var util = layui.util;
+    var $ = layui.$;
+    
+    // 当前视图
+    var currentView = 'scan';
+    
+    // 切换到扫描视图
+    $('#tab-scan').on('click', function(){
+        currentView = 'scan';
+        $(this).removeClass('layui-btn-primary');
+        $('#tab-history').addClass('layui-btn-primary');
+        $('#scan-result').hide();
+        $('#scan-history').hide();
+        $('.layui-form').show();
+    });
+    
+    // 切换到历史记录视图
+    $('#tab-history').on('click', function(){
+        currentView = 'history';
+        $(this).removeClass('layui-btn-primary');
+        $('#tab-scan').addClass('layui-btn-primary');
+        $('.layui-form').hide();
+        $('#scan-result').hide();
+        $('#scan-history').show();
+        
+        // 加载历史记录
+        loadHistory();
+    });
+    
+    // 开始扫描
+    $('#start-scan').on('click', function(){
+        // 表单验证
+        if(!$('input[name="target"]').val()){
+            layer.msg('请输入目标URL', {icon: 2});
+            return;
+        }
+        
+        // 二次确认
+        layer.confirm('确定要开始扫描吗？<br>目标: ' + $('input[name="target"]').val(), {
+            btn: ['确定','取消'],
+            title: '开始扫描'
+        }, function(index){  // 添加index参数
+            // 关闭确认框
+            layer.close(index);
+        // 获取表单数据
+        var formData = form.val('scan-form');
+        
+        // 验证目标URL
+        if(!formData.target){
+            layer.msg('请输入目标URL', {icon: 2});
+            return;
+        }
+        
+        // 创建进度条对话框
+        var progressIndex = layer.open({
+            type: 1,
+            title: '扫描进度',
+            content: '<div style="padding: 20px;"><div class="layui-progress layui-progress-big" lay-showpercent="true" lay-filter="scan-progress"><div class="layui-progress-bar layui-bg-blue" lay-percent="0%"></div></div><div id="scan-status-text" style="margin-top: 10px; text-align: center;">正在准备扫描...</div></div>',
+            area: ['500px', '150px'],
+            closeBtn: 0,
+            shadeClose: false
+        });
+        
+        // 初始化进度条
+        element.render('progress');
+        
+        // 创建计时器更新进度
+        var startTime = new Date().getTime();
+        var scanTimer = setInterval(function() {
+            var currentTime = new Date().getTime();
+            var elapsedSeconds = Math.floor((currentTime - startTime) / 1000);
+            var minutes = Math.floor(elapsedSeconds / 60);
+            var seconds = elapsedSeconds % 60;
+            var timeString = (minutes < 10 ? '0' + minutes : minutes) + ':' + (seconds < 10 ? '0' + seconds : seconds);
+            
+            // 根据扫描时间模拟进度
+            var percent = Math.min(95, Math.floor(elapsedSeconds / 3));
+            element.progress('scan-progress', percent + '%');
+            $('#scan-status-text').html('正在扫描... ' + timeString + ' 已过去');
+        }, 1000);
+        
+        // 发送请求
+        $.ajax({
+            url: '/manager/api/vulnscan/',
+            type: 'POST',
+            contentType: 'application/json',
+            data: JSON.stringify(formData),
+            success: function(res){
+                // 清除计时器
+                clearInterval(scanTimer);
+                
+                // 完成进度
+                element.progress('scan-progress', '100%');
+                $('#scan-status-text').html('扫描完成');
+                
+                // 延时关闭进度条
+                setTimeout(function() {
+                    layer.close(progressIndex);
+                    
+                    if(res.code === 0){
+                        // 显示扫描结果
+                        showScanResult(res.data);
+                    }else{
+                        layer.msg(res.msg || '扫描失败', {icon: 2});
+                    }
+                }, 500);
+            },
+            error: function(){
+                // 清除计时器
+                clearInterval(scanTimer);
+                
+                // 关闭进度条
+                layer.close(progressIndex);
+                layer.msg('请求失败，请稍后重试', {icon: 2});
+            }
+        });
+        });
+    });
+    
+    // 显示扫描结果
+    function showScanResult(data){
+        // 显示结果区域
+        $('.layui-form').hide();
+        $('#scan-result').show();
+        
+        // 更新统计信息
+        $('#vuln-count').text(data.stats.vuln_count);
+        $('#scan-duration').text(data.stats.duration);
+        
+        // 更新严重级别分布
+        var distribution = data.stats.severity_distribution;
+        var total = data.stats.vuln_count;
+        
+        if(total > 0){
+            // 计算百分比
+            var criticalPercent = (distribution.critical || 0) / total * 100;
+            var highPercent = (distribution.high || 0) / total * 100;
+            var mediumPercent = (distribution.medium || 0) / total * 100;
+            var lowPercent = (distribution.low || 0) / total * 100;
+            var infoPercent = (distribution.info || 0) / total * 100;
+            
+            // 更新进度条
+            $('#severity-distribution .layui-progress-bar').eq(0).attr('lay-percent', criticalPercent.toFixed(1) + '%');
+            $('#severity-distribution .layui-progress-bar').eq(1).attr('lay-percent', highPercent.toFixed(1) + '%');
+            $('#severity-distribution .layui-progress-bar').eq(2).attr('lay-percent', mediumPercent.toFixed(1) + '%');
+            $('#severity-distribution .layui-progress-bar').eq(3).attr('lay-percent', lowPercent.toFixed(1) + '%');
+            $('#severity-distribution .layui-progress-bar').eq(4).attr('lay-percent', infoPercent.toFixed(1) + '%');
+            
+            // 渲染进度条
+            element.render('progress');
+        }
+        
+        // 渲染漏洞表格
+        table.render({
+            elem: '#vuln-table',
+            data: data.results,
+            page: true,
+            limit: 10,
+            cols: [[
+                {field: 'name', title: '漏洞名称', width: 200},
+                {field: 'severity', title: '严重级别', width: 100, templet: function(d){
+                    var color = '';
+                    switch(d.severity.toLowerCase()){
+                        case 'critical': color = 'red'; break;
+                        case 'high': color = 'orange'; break;
+                        case 'medium': color = 'blue'; break;
+                        case 'low': color = 'cyan'; break;
+                        case 'info': color = 'green'; break;
+                    }
+                    return '<span class="layui-badge layui-bg-'+color+'">'+d.severity+'</span>';
+                }},
+                {field: 'host', title: '目标', width: 200},
+                {field: 'type', title: '类型', width: 120},
+                {field: 'template_id', title: '模板ID', width: 150},
+                {field: 'description', title: '描述'},
+                {field: 'reference', title: '参考链接', templet: function(d){
+                    if(!d.reference || d.reference.length === 0) return '';
+                    var links = '';
+                    for(var i=0; i<d.reference.length; i++){
+                        links += '<a href="'+d.reference[i]+'" target="_blank" class="layui-btn layui-btn-xs layui-btn-primary">链接'+(i+1)+'</a> ';
+                    }
+                    return links;
+                }}
+            ]]
+        });
+    }
+    
+    // 返回扫描页面
+    $('#back-to-scan').on('click', function(){
+        $('#tab-scan').click();
+    });
+    
+    // 导出结果
+    $('#export-results').on('click', function(){
+        window.location.href = '/manager/api/vulnscan/export/';
+    });
+    
+    // 刷新历史记录
+    $('#refresh-history').on('click', function(){
+        loadHistory();
+    });
+    
+    // 加载历史记录
+    function loadHistory(){
+        table.render({
+            elem: '#history-table',
+            url: '/manager/api/vulnscan/history/',
+            page: true,
+            cols: [[
+                {field: 'id', title: 'ID', width: 80, sort: true},
+                {field: 'target', title: '目标', width: 200},
+                {field: 'templates', title: '模板', width: 120},
+                {field: 'severity', title: '严重级别', width: 100},
+                {field: 'status', title: '状态', width: 100, templet: function(d){
+                    var statusClass = '';
+                    switch(d.status){
+                        case 'completed': statusClass = 'layui-bg-green'; break;
+                        case 'running': statusClass = 'layui-bg-blue'; break;
+                        case 'failed': statusClass = 'layui-bg-red'; break;
+                        default: statusClass = 'layui-bg-gray';
+                    }
+                    return '<span class="layui-badge '+statusClass+'">'+d.status+'</span>';
+                }},
+                {field: 'vuln_count', title: '漏洞数量', width: 100, sort: true},
+                {field: 'start_time', title: '开始时间', width: 160, sort: true},
+                {field: 'end_time', title: '结束时间', width: 160},
+                {title: '操作', width: 120, templet: function(d){
+                    return '<a class="layui-btn layui-btn-xs" lay-event="detail">查看详情</a>';
+                }}
+            ]],
+            response: {
+                statusCode: 0
+            },
+            parseData: function(res){
+                return {
+                    "code": res.code,
+                    "msg": res.msg,
+                    "count": res.count,
+                    "data": res.data
+                };
+            }
+        });
+        
+        // 监听表格操作
+        table.on('tool(history-table)', function(obj){
+            var data = obj.data;
+            if(obj.event === 'detail'){
+                // 查看详情
+                $.ajax({
+                    url: '/manager/api/vulnscan/history/' + data.id + '/',
+                    type: 'GET',
+                    success: function(res){
+                        if(res.code === 0){
+                            // 显示扫描结果
+                            $('#scan-history').hide();
+                            showScanResult({
+                                results: res.data.results,
+                                stats: {
+                                    vuln_count: res.data.results.length,
+                                    duration: '历史记录',
+                                    severity_distribution: res.data.severity_distribution
+                                }
+                            });
+                        }else{
+                            layer.msg(res.msg || '获取详情失败', {icon: 2});
+                        }
+                    },
+                    error: function(){
+                        layer.msg('请求失败，请稍后重试', {icon: 2});
+                    }
+                });
+            }
+        });
+    }
+});
+</script>
+
+<style>
+.big-font {
+    font-size: 28px;
+    font-weight: bold;
+    text-align: center;
+    padding: 15px 0;
+    color: #009688;
+}
+.layui-progress-container {
+    margin-bottom: 12px;
+}
+.severity-label {
+    margin-bottom: 8px;
+}
+.stat-card {
+    box-shadow: 0 2px 5px 0 rgba(0,0,0,.1);
+    transition: all .3s;
+}
+.stat-card:hover {
+    box-shadow: 0 5px 15px 0 rgba(0,0,0,.2);
+    transform: translateY(-2px);
+}
+.layui-card-header i {
+    margin-right: 5px;
+}
+.layui-form-mid.layui-word-aux {
+    color: #999;
+    margin-top: 5px;
+}
+.layui-table-cell {
+    height: auto;
+    line-height: 24px;
+    padding: 8px 15px;
+    position: relative;
+    box-sizing: border-box;
+}
+.layui-badge {
+    margin: 0 3px;
+}
+</style>
+{% endblock %}

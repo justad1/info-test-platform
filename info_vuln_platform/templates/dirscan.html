@@ -1,0 +1,669 @@
+{% extends 'base.html' %}
+
+{% block title %}目录扫描{% endblock %}
+
+{% block page_title %}目录扫描{% endblock %}
+
+{% block content %}
+<div class="layui-fluid">
+    <div class="layui-row layui-col-space15">
+        <div class="layui-col-md12">
+            <div class="layui-card">
+                <div class="layui-card-header">
+                    <i class="layui-icon layui-icon-tree"></i> 目录扫描
+                    <div class="layui-btn-group" style="float: right;">
+                        <button type="button" class="layui-btn layui-btn-primary layui-btn-sm" id="tab-scan">
+                            <i class="layui-icon layui-icon-search"></i> 扫描
+                        </button>
+                        <button type="button" class="layui-btn layui-btn-primary layui-btn-sm" id="tab-history">
+                            <i class="layui-icon layui-icon-log"></i> 历史记录
+                        </button>
+                    </div>
+                </div>
+                <div class="layui-card-body">
+                    <!-- 扫描配置表单 -->
+                    <form class="layui-form layui-form-pane" lay-filter="scan-form">
+                        <div class="layui-row layui-col-space15">
+                            <!-- 基本配置 -->
+                            <div class="layui-col-md6">
+                                <div class="layui-card">
+                                    <div class="layui-card-header">
+                                        <i class="layui-icon layui-icon-set"></i> 基本配置
+                                    </div>
+                                    <div class="layui-card-body">
+                                        <div class="layui-form-item">
+                                            <label class="layui-form-label">目标URL</label>
+                                            <div class="layui-input-block">
+                                                <input type="text" name="target" required lay-verify="required" placeholder="请输入目标URL，如：http://example.com" autocomplete="off" class="layui-input">
+                                            </div>
+                                        </div>
+                                        
+                                        <div class="layui-form-item">
+                                            <label class="layui-form-label">字典选择</label>
+                                            <div class="layui-input-block">
+                                                <input type="radio" name="wordlist" value="common" title="常用字典" checked>
+                                                <input type="radio" name="wordlist" value="large" title="大型字典">
+                                                <input type="radio" name="wordlist" value="custom" title="自定义">
+                                            </div>
+                                        </div>
+                                        
+                                        <div class="layui-form-item" id="custom-wordlist-group" style="display: none;">
+                                            <label class="layui-form-label">自定义字典</label>
+                                            <div class="layui-input-block">
+                                                <input type="text" name="custom_wordlist" placeholder="请输入字典文件路径" class="layui-input">
+                                            </div>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                            
+                            <!-- 高级配置 -->
+                            <div class="layui-col-md6">
+                                <div class="layui-card">
+                                    <div class="layui-card-header">
+                                        <i class="layui-icon layui-icon-set-fill"></i> 高级配置
+                                    </div>
+                                    <div class="layui-card-body">
+                                        <div class="layui-form-item">
+                                            <label class="layui-form-label">文件扩展名</label>
+                                            <div class="layui-input-block">
+                                                <input type="text" name="extensions" placeholder="输入扩展名，如：php,asp,jsp" class="layui-input">
+                                            </div>
+                                        </div>
+                                        
+                                        <div class="layui-form-item">
+                                            <div class="layui-inline">
+                                                <label class="layui-form-label">线程数</label>
+                                                <div class="layui-input-inline" style="width: 100px;">
+                                                    <input type="number" name="threads" value="10" class="layui-input">
+                                                </div>
+                                            </div>
+                                            <div class="layui-inline">
+                                                <label class="layui-form-label">超时时间</label>
+                                                <div class="layui-input-inline" style="width: 100px;">
+                                                    <input type="number" name="timeout" value="10" class="layui-input">
+                                                </div>
+                                                <div class="layui-form-mid layui-word-aux">秒</div>
+                                            </div>
+                                        </div>
+                                        
+                                        <div class="layui-form-item">
+                                            <label class="layui-form-label">状态码</label>
+                                            <div class="layui-input-block">
+                                                <input type="text" name="status_codes" placeholder="输入状态码，如：200,301,302,403" class="layui-input">
+                                            </div>
+                                        </div>
+                                        
+                                        <div class="layui-form-item">
+                                            <label class="layui-form-label">User-Agent</label>
+                                            <div class="layui-input-block">
+                                                <input type="text" name="user_agent" placeholder="自定义User-Agent" class="layui-input">
+                                            </div>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                        
+                        <div class="layui-form-item">
+                            <div class="layui-input-block">
+                                <button type="button" class="layui-btn layui-btn-normal" lay-submit lay-filter="start-scan">
+                                    <i class="layui-icon layui-icon-search"></i> 开始扫描
+                                </button>
+                                <button type="reset" class="layui-btn layui-btn-primary">
+                                    <i class="layui-icon layui-icon-refresh"></i> 重置
+                                </button>
+                            </div>
+                        </div>
+                    </form>
+                    
+                    <!-- 扫描结果 -->
+                    <div class="layui-card" id="result-container" style="display: none;">
+                        <div class="layui-card-header">
+                            <i class="layui-icon layui-icon-chart"></i> 扫描结果
+                            <button class="layui-btn layui-btn-xs layui-btn-normal" style="float: right;" id="export-btn">
+                                <i class="layui-icon layui-icon-export"></i> 导出结果
+                            </button>
+                        </div>
+                        <div class="layui-card-body">
+                            <!-- 结果统计 -->
+                            <div class="layui-row layui-col-space15">
+                                <div class="layui-col-md3">
+                                    <div class="layui-card">
+                                        <div class="layui-card-body" style="text-align: center;">
+                                            <h3>发现URL数</h3>
+                                            <h2 id="url-count">0</h2>
+                                        </div>
+                                    </div>
+                                </div>
+                                <div class="layui-col-md3">
+                                    <div class="layui-card">
+                                        <div class="layui-card-body" style="text-align: center;">
+                                            <h3>请求速度</h3>
+                                            <h2 id="request-speed">0/s</h2>
+                                        </div>
+                                    </div>
+                                </div>
+                                <div class="layui-col-md3">
+                                    <div class="layui-card">
+                                        <div class="layui-card-body" style="text-align: center;">
+                                            <h3>已用时间</h3>
+                                            <h2 id="scan-time">0s</h2>
+                                        </div>
+                                    </div>
+                                </div>
+                                <div class="layui-col-md3">
+                                    <div class="layui-card">
+                                        <div class="layui-card-body" style="text-align: center;">
+                                            <h3>扫描状态</h3>
+                                            <h2 id="scan-status">未开始</h2>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                            
+                            <!-- 进度条 -->
+                            <div class="layui-progress layui-progress-big" lay-showpercent="true" lay-filter="scan-progress" style="margin: 15px 0;">
+                                <div class="layui-progress-bar layui-bg-blue" lay-percent="0%"></div>
+                            </div>
+                            
+                            <!-- 状态码和内容类型分布图 -->
+                            <div class="layui-row layui-col-space15">
+                                <div class="layui-col-md6">
+                                    <div class="layui-card">
+                                        <div class="layui-card-header">状态码分布</div>
+                                        <div class="layui-card-body">
+                                            <div id="status-distribution" style="height: 300px;"></div>
+                                        </div>
+                                    </div>
+                                </div>
+                                <div class="layui-col-md6">
+                                    <div class="layui-card">
+                                        <div class="layui-card-header">内容类型分布</div>
+                                        <div class="layui-card-body">
+                                            <div id="content-type-distribution" style="height: 300px;"></div>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                            
+                            <!-- 详细结果表格 -->
+                            <table id="result-table" lay-filter="result-table"></table>
+                            
+                            <!-- URL操作按钮 -->
+                            <script type="text/html" id="url-toolbar">
+                                <a class="layui-btn layui-btn-xs layui-btn-normal" lay-event="visit" target="_blank">
+                                    <i class="layui-icon layui-icon-link"></i> 访问
+                                </a>
+                                <a class="layui-btn layui-btn-xs" lay-event="copy">
+                                    <i class="layui-icon layui-icon-file"></i> 复制
+                                </a>
+                            </script>
+                        </div>
+                    </div>
+                </div>
+                
+                <!-- 历史记录表格 -->
+                <div class="layui-card" id="history-container" style="display: none;">
+                    <div class="layui-card-header">
+                        <i class="layui-icon layui-icon-log"></i> 扫描历史记录
+                        <button class="layui-btn layui-btn-xs layui-btn-normal" style="float: right;" id="refresh-history">
+                            <i class="layui-icon layui-icon-refresh"></i> 刷新
+                        </button>
+                    </div>
+                    <div class="layui-card-body">
+                        <table id="history-table" lay-filter="history-table"></table>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- 历史记录表格工具栏 -->
+<script type="text/html" id="history-table-toolbar">
+    <a class="layui-btn layui-btn-xs layui-btn-normal" lay-event="view"><i class="layui-icon layui-icon-search"></i> 查看</a>
+</script>
+{% endblock %}
+
+{% block scripts %}
+<script src="https://cdn.jsdelivr.net/npm/echarts@5.4.3/dist/echarts.min.js"></script>
+<script>
+layui.use(['form', 'table', 'layer', 'element'], function(){
+    var form = layui.form;
+    var table = layui.table;
+    var layer = layui.layer;
+    var element = layui.element;
+    var $ = layui.$;
+    
+    // 字典选择切换
+    form.on('radio(wordlist)', function(data){
+        if(data.value === 'custom') {
+            $('#custom-wordlist-group').show();
+        } else {
+            $('#custom-wordlist-group').hide();
+        }
+    });
+    
+    // 初始化结果表格
+    var resultTable = table.render({
+        elem: '#result-table',
+        cols: [[
+            {field: 'url', title: 'URL', minWidth: 300},
+            {field: 'status_code', title: '状态码', width: 100, templet: function(d){
+                var color = '';
+                if(d.status_code >= 200 && d.status_code < 300) color = 'layui-bg-green';
+                else if(d.status_code >= 300 && d.status_code < 400) color = 'layui-bg-blue';
+                else if(d.status_code >= 400 && d.status_code < 500) color = 'layui-bg-orange';
+                else if(d.status_code >= 500) color = 'layui-bg-red';
+                return '<span class="layui-badge ' + color + '">' + d.status_code + '</span>';
+            }},
+            {field: 'content_length', title: '内容长度', width: 120},
+            {field: 'content_type', title: '内容类型', width: 150},
+            {field: 'title', title: '页面标题', width: 200},
+            {field: 'response_time', title: '响应时间(ms)', width: 120},
+            {field: 'redirect_url', title: '重定向URL', width: 200},
+            {fixed: 'right', title: '操作', toolbar: '#url-toolbar', width: 100}
+        ]],
+        data: [],
+        page: true,
+        limit: 10,
+        limits: [10, 20, 50, 100]
+    });
+    
+    // 表格工具条事件
+    table.on('tool(result-table)', function(obj){
+        if(obj.event === 'visit'){
+            window.open(obj.data.url, '_blank');
+        } else if(obj.event === 'copy'){
+            var textarea = document.createElement('textarea');
+            textarea.value = obj.data.url;
+            document.body.appendChild(textarea);
+            textarea.select();
+            document.execCommand('copy');
+            document.body.removeChild(textarea);
+            layer.msg('URL已复制到剪贴板');
+        }
+    });
+    
+    // 开始扫描
+    form.on('submit(start-scan)', function(data){
+        var loadIndex = layer.load(2);
+        $('#result-container').show();
+        $('#scan-status').html('<span class="layui-badge layui-bg-blue">扫描中</span>');
+        
+        // 重置进度条
+        element.progress('scan-progress', '0%');
+        
+        // 发送扫描请求
+        $.ajax({
+            url: '/manager/api/dirscan/',
+            type: 'POST',
+            contentType: 'application/json',
+            data: JSON.stringify(data.field),
+            success: function(res){
+                layer.close(loadIndex);
+                if(res.code === 0){
+                    updateScanResults(res.data);
+                    layer.msg('扫描完成', {icon: 1});
+                } else {
+                    $('#scan-status').html('<span class="layui-badge layui-bg-red">失败</span>');
+                    layer.msg('扫描失败：' + res.msg, {icon: 2});
+                }
+            },
+            error: function(xhr){
+                layer.close(loadIndex);
+                $('#scan-status').html('<span class="layui-badge layui-bg-red">失败</span>');
+                layer.msg('请求失败：' + xhr.statusText, {icon: 2});
+            }
+        });
+        
+        // 模拟进度更新
+        var progress = 0;
+        var timer = setInterval(function(){
+            progress = progress + Math.random() * 10 | 0;
+            if(progress > 100){
+                progress = 100;
+                clearInterval(timer);
+            }
+            element.progress('scan-progress', progress + '%');
+        }, 1000);
+        
+        return false;
+    });
+    
+    // 更新扫描结果
+    function updateScanResults(data) {
+        // 更新统计信息
+        $('#url-count').text(data.stats.total_urls);
+        $('#scan-time').text(data.stats.duration);
+        $('#scan-status').html('<span class="layui-badge layui-bg-green">已完成</span>');
+        
+        // 更新表格数据
+        resultTable.reload({
+            data: data.results
+        });
+        
+        // 更新状态码分布图
+        updateStatusDistribution(data.stats.status_distribution);
+        
+        // 更新内容类型分布图
+        updateContentTypeDistribution(data.stats.content_types);
+    }
+    
+    // 更新状态码分布图
+    function updateStatusDistribution(data) {
+        var chart = echarts.init(document.getElementById('status-distribution'));
+        var option = {
+            tooltip: {
+                trigger: 'item'
+            },
+            legend: {
+                orient: 'vertical',
+                left: 'left'
+            },
+            series: [
+                {
+                    name: '状态码分布',
+                    type: 'pie',
+                    radius: '50%',
+                    data: Object.entries(data).map(([code, count]) => ({
+                        name: code,
+                        value: count,
+                        itemStyle: {
+                            color: getStatusCodeColor(parseInt(code))
+                        }
+                    })),
+                    emphasis: {
+                        itemStyle: {
+                            shadowBlur: 10,
+                            shadowOffsetX: 0,
+                            shadowColor: 'rgba(0, 0, 0, 0.5)'
+                        }
+                    }
+                }
+            ]
+        };
+        chart.setOption(option);
+    }
+    
+    // 更新内容类型分布图
+    function updateContentTypeDistribution(data) {
+        var chart = echarts.init(document.getElementById('content-type-distribution'));
+        var option = {
+            tooltip: {
+                trigger: 'axis',
+                axisPointer: {
+                    type: 'shadow'
+                }
+            },
+            legend: {
+                data: ['数量']
+            },
+            grid: {
+                left: '3%',
+                right: '4%',
+                bottom: '3%',
+                containLabel: true
+            },
+            xAxis: [
+                {
+                    type: 'category',
+                    data: Object.keys(data),
+                    axisTick: {
+                        alignWithLabel: true
+                    },
+                    axisLabel: {
+                        rotate: 45
+                    }
+                }
+            ],
+            yAxis: [
+                {
+                    type: 'value'
+                }
+            ],
+            series: [
+                {
+                    name: '数量',
+                    type: 'bar',
+                    barWidth: '60%',
+                    data: Object.values(data)
+                }
+            ]
+        };
+        chart.setOption(option);
+    }
+    
+    // 获取状态码对应的颜色
+    function getStatusCodeColor(code) {
+        if(code >= 200 && code < 300) return '#5FB878';  // 绿色
+        if(code >= 300 && code < 400) return '#1E9FFF';  // 蓝色
+        if(code >= 400 && code < 500) return '#FFB800';  // 橙色
+        if(code >= 500) return '#FF5722';  // 红色
+        return '#393D49';  // 灰色
+    }
+    
+    // 导出结果
+    $('#export-btn').on('click', function(){
+        window.location.href = '/manager/api/dirscan/export/';
+    });
+    
+    // 标签切换
+    $('#tab-scan').on('click', function(){
+        $(this).removeClass('layui-btn-primary').siblings().addClass('layui-btn-primary');
+        $('#result-container').hide();
+        $('#history-container').hide();
+        $('.layui-form').show();
+    });
+    
+    $('#tab-history').on('click', function(){
+        $(this).removeClass('layui-btn-primary').siblings().addClass('layui-btn-primary');
+        $('.layui-form').hide();
+        $('#result-container').hide();
+        $('#history-container').show();
+        // 加载历史记录
+        table.reload('history-table');
+    });
+    
+    // 加载历史记录表格
+    var historyTable = table.render({
+        elem: '#history-table',
+        url: '/manager/api/dirscan/history/',
+        toolbar: '#history-table-toolbar',
+        defaultToolbar: ['filter', 'exports', 'print'],
+        cols: [[
+            {type: 'checkbox', fixed: 'left'},
+            {field: 'id', title: 'ID', width: 80, sort: true},
+            {field: 'target', title: '扫描目标', width: 200},
+            {field: 'wordlist', title: '字典类型', width: 120},
+            {field: 'status', title: '状态', width: 100, templet: function(d){
+                if(d.status === 'completed') {
+                    return '<span class="layui-badge layui-bg-green">已完成</span>';
+                } else if(d.status === 'running') {
+                    return '<span class="layui-badge layui-bg-blue">扫描中</span>';
+                } else if(d.status === 'failed') {
+                    return '<span class="layui-badge">失败</span>';
+                } else {
+                    return '<span class="layui-badge layui-bg-orange">等待中</span>';
+                }
+            }},
+            {field: 'url_count', title: '发现URL数', width: 120, sort: true},
+            {field: 'start_time', title: '开始时间', width: 180, sort: true},
+            {field: 'end_time', title: '结束时间', width: 180, sort: true},
+            {fixed: 'right', title: '操作', toolbar: '#history-table-toolbar', width: 150}
+        ]],
+        page: true,
+        limit: 10,
+        limits: [10, 20, 50, 100],
+        text: {
+            none: '暂无扫描历史'
+        }
+    });
+    
+    // 表格工具栏事件
+    table.on('tool(history-table)', function(obj){
+        var data = obj.data;
+        if(obj.event === 'view'){
+            // 查看历史记录详情
+            layer.open({
+                type: 1,
+                title: '扫描详情 - ' + data.target,
+                area: ['90%', '90%'],
+                content: '<div class="layui-fluid" id="history-detail-container" style="padding: 15px;">' +
+                         '<div class="layui-row layui-col-space15">' +
+                         '<div class="layui-col-md12"><div class="layui-card"><div class="layui-card-header">基本信息</div>' +
+                         '<div class="layui-card-body">' +
+                         '<p><strong>扫描目标：</strong>' + data.target + '</p>' +
+                         '<p><strong>字典类型：</strong>' + data.wordlist + '</p>' +
+                         '<p><strong>线程数：</strong>' + (data.threads || '-') + '</p>' +
+                         '<p><strong>超时时间：</strong>' + (data.timeout || '-') + '秒</p>' +
+                         '<p><strong>开始时间：</strong>' + data.start_time + '</p>' +
+                         '<p><strong>结束时间：</strong>' + data.end_time + '</p>' +
+                         '<p><strong>状态：</strong>' + data.status + '</p>' +
+                         '</div></div></div>' +
+                         '<div class="layui-col-md6"><div class="layui-card"><div class="layui-card-header">状态码分布</div>' +
+                         '<div class="layui-card-body"><div id="history-status-chart" style="width: 100%; height: 300px;"></div></div></div></div>' +
+                         '<div class="layui-col-md6"><div class="layui-card"><div class="layui-card-header">内容类型分布</div>' +
+                         '<div class="layui-card-body"><div id="history-content-type-chart" style="width: 100%; height: 300px;"></div></div></div></div>' +
+                         '<div class="layui-col-md12"><div class="layui-card"><div class="layui-card-header">扫描结果</div>' +
+                         '<div class="layui-card-body"><table id="history-result-table" lay-filter="history-result-table"></table></div></div></div>' +
+                         '</div></div>',
+                success: function(layero, index){
+                    // 加载历史记录详情
+                    $.ajax({
+                        url: '/manager/api/dirscan/history/' + data.id + '/',
+                        type: 'GET',
+                        dataType: 'json',
+                        success: function(res){
+                            if(res.code === 0){
+                                // 渲染结果表格
+                                table.render({
+                                    elem: '#history-result-table',
+                                    data: res.data.results || [],
+                                    cols: [[
+                                        {field: 'url', title: 'URL', width: 300},
+                                        {field: 'status_code', title: '状态码', width: 100, sort: true, templet: function(d){
+                                            var color = getStatusCodeColor(d.status_code);
+                                            return '<span class="layui-badge" style="background-color: ' + color + '">' + d.status_code + '</span>';
+                                        }},
+                                        {field: 'content_length', title: '内容长度', width: 120},
+                                        {field: 'content_type', title: '内容类型', width: 150},
+                                        {field: 'title', title: '页面标题', width: 200},
+                                        {field: 'response_time', title: '响应时间(ms)', width: 120},
+                                        {field: 'redirect_url', title: '重定向URL', width: 200}
+                                    ]],
+                                    page: true,
+                                    limit: 15,
+                                    limits: [15, 30, 50, 100],
+                                    text: {
+                                        none: '暂无扫描结果'
+                                    }
+                                });
+                                
+                                // 渲染状态码分布图
+                                if(res.data.status_distribution){
+                                    var statusChart = echarts.init(document.getElementById('history-status-chart'));
+                                    var statusData = [];
+                                    for(var status in res.data.status_distribution){
+                                        statusData.push({
+                                            name: status,
+                                            value: res.data.status_distribution[status],
+                                            itemStyle: {
+                                                color: getStatusCodeColor(status)
+                                            }
+                                        });
+                                    }
+                                    statusChart.setOption({
+                                        title: {
+                                            text: '状态码分布',
+                                            left: 'center'
+                                        },
+                                        tooltip: {
+                                            trigger: 'item',
+                                            formatter: '{a} <br/>{b}: {c} ({d}%)'
+                                        },
+                                        legend: {
+                                            orient: 'vertical',
+                                            left: 'left',
+                                            data: statusData.map(function(item){ return item.name; })
+                                        },
+                                        series: [
+                                            {
+                                                name: '状态码',
+                                                type: 'pie',
+                                                radius: '50%',
+                                                data: statusData,
+                                                emphasis: {
+                                                    itemStyle: {
+                                                        shadowBlur: 10,
+                                                        shadowOffsetX: 0,
+                                                        shadowColor: 'rgba(0, 0, 0, 0.5)'
+                                                    }
+                                                }
+                                            }
+                                        ]
+                                    });
+                                }
+                                
+                                // 渲染内容类型分布图
+                                if(res.data.content_types){
+                                    var contentTypeChart = echarts.init(document.getElementById('history-content-type-chart'));
+                                    var contentTypeData = [];
+                                    for(var type in res.data.content_types){
+                                        contentTypeData.push({
+                                            name: type || '未知',
+                                            value: res.data.content_types[type]
+                                        });
+                                    }
+                                    contentTypeChart.setOption({
+                                        title: {
+                                            text: '内容类型分布',
+                                            left: 'center'
+                                        },
+                                        tooltip: {
+                                            trigger: 'item',
+                                            formatter: '{a} <br/>{b}: {c} ({d}%)'
+                                        },
+                                        legend: {
+                                            orient: 'vertical',
+                                            left: 'left',
+                                            data: contentTypeData.map(function(item){ return item.name; })
+                                        },
+                                        series: [
+                                            {
+                                                name: '内容类型',
+                                                type: 'pie',
+                                                radius: '50%',
+                                                data: contentTypeData,
+                                                emphasis: {
+                                                    itemStyle: {
+                                                        shadowBlur: 10,
+                                                        shadowOffsetX: 0,
+                                                        shadowColor: 'rgba(0, 0, 0, 0.5)'
+                                                    }
+                                                }
+                                            }
+                                        ]
+                                    });
+                                }
+                            } else {
+                                layer.msg('加载历史记录详情失败：' + res.msg, {icon: 2});
+                            }
+                        },
+                        error: function(xhr){
+                            layer.msg('加载历史记录详情失败：' + xhr.statusText, {icon: 2});
+                        }
+                    });
+                }
+            });
+        }
+    });
+    
+    // 刷新历史记录
+    $('#refresh-history').on('click', function(){
+        historyTable.reload();
+    });
+});
+</script>
+{% endblock %} 
