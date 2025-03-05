@@ -13,6 +13,7 @@ from django.conf import settings
 from datetime import datetime
 
 from .models import UserLog, PortScan
+from .models_report import ScanReport
 from .decorators import login_required, api_login_required
 from .utils import get_client_ip
 
@@ -120,6 +121,71 @@ class PortScanApiView(View):
                 continue
         
         return results, port_distribution, service_distribution
+    
+    def generate_report(self, request):
+        """生成扫描报告"""
+        try:
+            scan_id = request.POST.get('scan_id')
+            if not scan_id:
+                return JsonResponse({
+                    'code': 400,
+                    'msg': '缺少扫描ID',
+                    'data': None
+                })
+            
+            # 获取扫描记录
+            scan = PortScan.objects.get(id=scan_id)
+            
+            # 生成报告标题
+            title = f"端口扫描报告 - {scan.target} - {scan.start_time.strftime('%Y-%m-%d %H:%M:%S')}"
+            
+            # 解析扫描结果
+            result_data = json.loads(scan.result) if scan.result else {}
+            
+            # 生成报告内容
+            content = {
+                'scan_info': {
+                    'target': scan.target,
+                    'scan_type': scan.scan_type,
+                    'ports': scan.ports,
+                    'start_time': scan.start_time.strftime('%Y-%m-%d %H:%M:%S'),
+                    'end_time': scan.end_time.strftime('%Y-%m-%d %H:%M:%S') if scan.end_time else '',
+                    'status': scan.status
+                },
+                'open_ports': result_data.get('open_ports', []),
+                'service_info': result_data.get('service_info', {})
+            }
+            
+            # 创建扫描报告
+            report = ScanReport.objects.create(
+                title=title,
+                report_type='portscan',
+                target=scan.target,
+                scan_time=scan.start_time,
+                content=json.dumps(content, ensure_ascii=False)
+            )
+            
+            return JsonResponse({
+                'code': 0,
+                'msg': '生成报告成功',
+                'data': {
+                    'report_id': report.id
+                }
+            })
+            
+        except PortScan.DoesNotExist:
+            return JsonResponse({
+                'code': 404,
+                'msg': '扫描记录不存在',
+                'data': None
+            })
+        except Exception as e:
+            logger.exception("生成报告失败")
+            return JsonResponse({
+                'code': 500,
+                'msg': f'生成报告失败：{str(e)}',
+                'data': None
+            })
     
     def post(self, request):
         """执行端口扫描"""

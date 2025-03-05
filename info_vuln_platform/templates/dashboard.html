@@ -1,16 +1,161 @@
 {% extends 'base.html' %}
 
-{% block title %}后台首页{% endblock %}
+{% block title %}信息收集测试平台 - 首页{% endblock %}
 
 {% block content %}
 <div class="layui-fluid">
+    <!-- 欢迎卡片 -->
     <div class="layui-row layui-col-space15">
         <div class="layui-col-md12">
             <div class="layui-card">
-                <div class="layui-card-header">欢迎使用信息收集渗透测试平台</div>
+                <div class="layui-card-header">
+                    <i class="layui-icon layui-icon-home"></i> 欢迎使用信息收集测试平台
+                </div>
                 <div class="layui-card-body">
-                    <p>欢迎，{{ request.session.username }}！</p>
-                    <p>您可以使用左侧导航栏访问各个功能模块。</p>
+                    <div class="layui-row">
+                        <div class="layui-col-md8">
+                            <h3>您好，{{ request.session.username }}！</h3>
+                            <p>今天是您的第 <span id="login-days" class="layui-badge layui-bg-blue">0</span> 天。</p>
+                        </div>
+                        <div class="layui-col-md4 layui-text-right">
+                            <p>系统运行时间：<span id="uptime" class="layui-badge layui-bg-green">0天</span></p>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- 数据统计卡片 -->
+    <div class="layui-row layui-col-space15">
+        <div class="layui-col-md3">
+            <div class="layui-card">
+                <div class="layui-card-header">
+                    <i class="layui-icon layui-icon-user"></i> 用户总数
+                </div>
+                <div class="layui-card-body">
+                    <h2 id="user-count">0</h2>
+                    <p>活跃用户：<span id="active-users">0</span></p>
+                </div>
+            </div>
+        </div>
+        <div class="layui-col-md3">
+            <div class="layui-card">
+                <div class="layui-card-header">
+                    <i class="layui-icon layui-icon-search"></i> 扫描任务
+                </div>
+                <div class="layui-card-body">
+                    <h2 id="scan-count">0</h2>
+                    <p>今日新增：<span id="today-scans">0</span></p>
+                </div>
+            </div>
+        </div>
+        <div class="layui-col-md3">
+            <div class="layui-card">
+                <div class="layui-card-header">
+                    <i class="layui-icon layui-icon-flag"></i> 漏洞发现
+                </div>
+                <div class="layui-card-body">
+                    <h2 id="vuln-count">0</h2>
+                    <div class="vuln-stats">
+                        <p>高危漏洞：<span id="high-risk-vulns" class="layui-badge layui-bg-danger">0</span></p>
+                        <p>中危漏洞：<span id="medium-risk-vulns" class="layui-badge layui-bg-orange">0</span></p>
+                        <p>低危漏洞：<span id="low-risk-vulns" class="layui-badge layui-bg-blue">0</span></p>
+                    </div>
+                </div>
+            </div>
+        </div>
+        <div class="layui-col-md3">
+            <div class="layui-card">
+                <div class="layui-card-header">
+                    <i class="layui-icon layui-icon-template"></i> POC总数
+                </div>
+                <div class="layui-card-body">
+                    <h2 id="poc-count">0</h2>
+                    <p>可用POC：<span id="active-pocs">0</span></p>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- 快速访问卡片 -->
+    <div class="layui-row layui-col-space15">
+        <div class="layui-col-md8">
+            <div class="layui-card">
+                <div class="layui-card-header">
+                    <i class="layui-icon layui-icon-app"></i> 快速访问
+                </div>
+                <div class="layui-card-body">
+                    <div class="layui-row layui-col-space10">
+                        <div class="layui-col-md3">
+                            <a href="/manager/baseinfo/" class="quick-link">
+                                <i class="layui-icon layui-icon-search"></i>
+                                <p>基础信息查询</p>
+                            </a>
+                        </div>
+                        <div class="layui-col-md3">
+                            <a href="/manager/portscan/" class="quick-link">
+                                <i class="layui-icon layui-icon-console"></i>
+                                <p>端口扫描</p>
+                            </a>
+                        </div>
+                        <div class="layui-col-md3">
+                            <a href="/manager/dirscan/" class="quick-link">
+                                <i class="layui-icon layui-icon-file"></i>
+                                <p>目录扫描</p>
+                            </a>
+                        </div>
+                        <div class="layui-col-md3">
+                            <a href="/manager/fingerprint/" class="quick-link">
+                                <i class="layui-icon layui-icon-template-1"></i>
+                                <p>指纹识别</p>
+                            </a>
+                        </div>
+                        <div class="layui-col-md3">
+                            <a href="/manager/subdomain/" class="quick-link">
+                                <i class="layui-icon layui-icon-share"></i>
+                                <p>子域名收集</p>
+                            </a>
+                        </div>
+                        <div class="layui-col-md3">
+                            <a href="/manager/vulnscan/" class="quick-link">
+                                <i class="layui-icon layui-icon-fire"></i>
+                                <p>Nuclei漏洞扫描</p>
+                            </a>
+                        </div>
+                        <div class="layui-col-md3">
+                            <a href="/manager/poc/" class="quick-link">
+                                <i class="layui-icon layui-icon-code-circle"></i>
+                                <p>POC管理</p>
+                            </a>
+                        </div>
+                        <div class="layui-col-md3">
+                            <a href="/manager/report/scan/" class="quick-link">
+                                <i class="layui-icon layui-icon-chart"></i>
+                                <p>扫描报告</p>
+                            </a>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+        <div class="layui-col-md4">
+            <div class="layui-card">
+                <div class="layui-card-header">
+                    <i class="layui-icon layui-icon-notice"></i> 系统公告
+                </div>
+                <div class="layui-card-body">
+                    <div id="system-notices">
+                        <ul class="layui-timeline" id="notice-list">
+                            <li class="layui-timeline-item">
+                                <i class="layui-icon layui-timeline-axis">&#xe63f;</i>
+                                <div class="layui-timeline-content layui-text">
+                                    <h3 class="layui-timeline-title">系统更新</h3>
+                                    <p>新增Nuclei漏洞扫描功能</p>
+                                </div>
+                            </li>
+                        </ul>
+                    </div>
                 </div>
             </div>
         </div>
@@ -18,33 +163,155 @@
 </div>
 {% endblock %}
 
+{% block styles %}
+<style>
+body {
+    position: relative;
+    overflow-x: hidden;
+    min-height: 100vh;
+}
+
+.layui-card {
+    background: rgba(255, 255, 255, 0.95);
+    border: 1px solid rgba(0, 0, 0, 0.1);
+    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
+    position: relative;
+    overflow: hidden;
+}
+
+.quick-link {
+    display: block;
+    text-align: center;
+    padding: 20px;
+    border-radius: 4px;
+    transition: all 0.3s;
+}
+
+.quick-link:hover {
+    background: #f0f0f0;
+    transform: translateY(-2px);
+}
+
+.quick-link i {
+    font-size: 32px;
+    color: #009688;
+}
+
+.quick-link p {
+    margin-top: 10px;
+    color: #666;
+}
+
+.vuln-stats p {
+    margin: 5px 0;
+}
+
+#notice-list {
+    max-height: 300px;
+    overflow-y: auto;
+}
+</style>
+{% endblock %}
+
 {% block scripts %}
 <script>
 layui.use(['jquery', 'layer'], function(){
-  var $ = layui.jquery;
-  var layer = layui.layer;
-  
-  // 获取用户总数
-  $.ajax({
-    url: '/manager/api/users/',
-    type: 'GET',
-    success: function(res) {
-      if (res.code === 200) {
-        $('#user-count').text(res.count);
-      } else {
-        $('#user-count').text('获取失败');
-      }
-    },
-    error: function() {
-      $('#user-count').text('获取失败');
-    }
-  });
-  
-  // 模拟系统运行时间
-  var startDate = new Date('2025-01-01');
-  var now = new Date();
-  var diff = Math.floor((now - startDate) / (1000 * 60 * 60 * 24));
-  $('#uptime').text(diff + '天');
+    var $ = layui.jquery;
+    var layer = layui.layer;
+    
+    // 获取用户总数
+    $.ajax({
+        url: '/manager/api/users/',
+        type: 'GET',
+        success: function(res) {
+            if (res.code === 200) {
+                $('#user-count').text(res.count);
+                $('#active-users').text(res.active_count || 0);
+            }
+        }
+    });
+    
+    // 获取漏洞扫描统计
+    $.ajax({
+        url: '/manager/api/vulnscan/history/',
+        type: 'GET',
+        success: function(res) {
+            if (res.code === 200) {
+                $('#scan-count').text(res.total_count || 0);
+                $('#today-scans').text(res.today_count || 0);
+                $('#vuln-count').text(res.vuln_count || 0);
+                $('#high-risk-vulns').text(res.high_risk_count || 0);
+                $('#medium-risk-vulns').text(res.medium_risk_count || 0);
+                $('#low-risk-vulns').text(res.low_risk_count || 0);
+                
+                // 更新漏洞扫描卡片标题
+                var scanTitle = '漏洞发现';
+                if (res.latest_scan_time) {
+                    scanTitle += ' (最近扫描: ' + new Date(res.latest_scan_time).toLocaleString() + ')';
+                }
+                $('.layui-icon-flag').parent().contents().filter(function() {
+                    return this.nodeType === 3;
+                }).replaceWith(' ' + scanTitle);
+            }
+        }
+    });
+    
+    // 获取POC统计
+    $.ajax({
+        url: '/manager/api/poc/',
+        type: 'GET',
+        success: function(res) {
+            if (res.code === 200) {
+                $('#poc-count').text(res.total_count || 0);
+                $('#active-pocs').text(res.active_count || 0);
+                
+                // 添加POC类型统计
+                var pocTypes = res.template_types || {};
+                var pocTypesHtml = '';
+                for (var type in pocTypes) {
+                    pocTypesHtml += `<p>${type}: <span class="layui-badge">${pocTypes[type]}</span></p>`;
+                }
+                if (pocTypesHtml) {
+                    $('.layui-icon-template').closest('.layui-card').find('.layui-card-body').append(
+                        '<div class="poc-types">' + pocTypesHtml + '</div>'
+                    );
+                }
+            }
+        }
+    });
+    
+    // 计算系统运行时间
+    var startDate = new Date('2024-01-01');
+    var now = new Date();
+    var diff = Math.floor((now - startDate) / (1000 * 60 * 60 * 24));
+    $('#uptime').text(diff + '天');
+    
+    // 获取用户登录天数
+    var firstLogin = new Date(localStorage.getItem('first_login') || now);
+    var loginDays = Math.floor((now - firstLogin) / (1000 * 60 * 60 * 24));
+    $('#login-days').text(loginDays);
+    
+    // 获取系统公告
+    $.ajax({
+        url: '/manager/api/notices/',
+        type: 'GET',
+        success: function(res) {
+            if (res.code === 200 && res.notices) {
+                var html = '';
+                res.notices.forEach(function(notice) {
+                    html += `
+                    <li class="layui-timeline-item">
+                        <i class="layui-icon layui-timeline-axis">&#xe63f;</i>
+                        <div class="layui-timeline-content layui-text">
+                            <h3 class="layui-timeline-title">${notice.title}</h3>
+                            <p>${notice.content}</p>
+                        </div>
+                    </li>`;
+                });
+                $('#notice-list').html(html);
+            }
+        }
+    });
 });
 </script>
 {% endblock %}

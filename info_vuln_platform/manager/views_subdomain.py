@@ -4,9 +4,14 @@ from django.views import View
 from django.http import JsonResponse
 from django.utils.decorators import method_decorator
 from django.views.decorators.csrf import csrf_exempt
+import logging
 
 from .models import Subdomain, UserLog
+from .models_report import ScanReport
 from .decorators import login_required
+
+# 配置logger
+logger = logging.getLogger(__name__)
 
 # 获取客户端IP
 def get_client_ip(request):
@@ -271,3 +276,65 @@ class SubdomainApiView(View):
         except Exception as e:
             # 返回错误响应
             return JsonResponse({'code': 500, 'msg': f'删除子域名失败：{str(e)}'})
+
+    def generate_report(self, request):
+        """生成子域名扫描报告"""
+        try:
+            scan_id = request.POST.get('scan_id')
+            if not scan_id:
+                return JsonResponse({
+                    'code': 400,
+                    'msg': '缺少扫描ID',
+                    'data': None
+                })
+            
+            # 获取扫描记录
+            scan = Subdomain.objects.get(id=scan_id)
+            
+            # 生成报告标题
+            title = f"子域名扫描报告 - {scan.domain} - {scan.create_time.strftime('%Y-%m-%d %H:%M:%S')}"
+            
+            # 生成报告内容
+            content = {
+                'scan_info': {
+                    'domain': scan.domain,
+                    'subdomain': scan.subdomain,
+                    'ip': scan.ip,
+                    'status': scan.status,
+                    'title': scan.title,
+                    'server': scan.server,
+                    'create_time': scan.create_time.strftime('%Y-%m-%d %H:%M:%S'),
+                    'update_time': scan.update_time.strftime('%Y-%m-%d %H:%M:%S')
+                }
+            }
+            
+            # 创建扫描报告
+            report = ScanReport.objects.create(
+                title=title,
+                report_type='subdomain',
+                target=scan.domain,
+                scan_time=scan.create_time,
+                content=json.dumps(content, ensure_ascii=False)
+            )
+            
+            return JsonResponse({
+                'code': 0,
+                'msg': '生成报告成功',
+                'data': {
+                    'report_id': report.id
+                }
+            })
+            
+        except Subdomain.DoesNotExist:
+            return JsonResponse({
+                'code': 404,
+                'msg': '扫描记录不存在',
+                'data': None
+            })
+        except Exception as e:
+            logger.exception("生成报告失败")
+            return JsonResponse({
+                'code': 500,
+                'msg': f'生成报告失败：{str(e)}',
+                'data': None
+            })

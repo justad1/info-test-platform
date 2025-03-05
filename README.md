@@ -84,8 +84,9 @@
 - Python 3.8+
 - Django 4.2+
 - MySQL 5.7+
+- Docker & Docker Compose (可选)
 
-### 安装步骤
+### 安装方式一：传统部署
 
 1. 克隆代码
 ```bash
@@ -121,6 +122,29 @@ python manage.py createsuperuser
 ```bash
 python manage.py runserver 0.0.0.0:8000
 ```
+
+### 安装方式二：Docker 部署
+
+1. 克隆代码并进入项目目录
+```bash
+git clone https://github.com/your-repo/info-test-platform.git
+cd info-test-platform
+```
+
+2. 使用 Docker Compose 启动服务
+```bash
+docker-compose up -d
+```
+
+3. 创建超级用户（首次部署时需要）
+```bash
+docker-compose exec web python manage.py createsuperuser
+```
+
+4. 访问服务
+浏览器访问 http://localhost:8000
+
+注意：使用 Docker 部署时，所有配置都在 docker-compose.yml 文件中，无需手动配置数据库。
 
 ## 使用说明
 
@@ -190,7 +214,7 @@ python manage.py runserver 0.0.0.0:8000
    - 全部（all）
 4. 选择严重级别过滤（信息、低、中、高、严重）
 5. 设置线程数和超时时间
-6. 点击“开始扫描”
+6. 点击"开始扫描"
 7. 查看扫描结果
    - 漏洞列表
    - 严重级别分布
@@ -213,7 +237,19 @@ python manage.py runserver 0.0.0.0:8000
 
 ## 更新日志
 
-### 2025-03-04
+### 2024-03-05
+#### 新增功能
+- 添加 Docker 部署支持
+- 优化项目结构
+- 添加 Docker Compose 配置文件
+- 完善部署文档
+
+#### 改进
+- 优化项目依赖管理
+- 更新部署说明文档
+- 添加 Docker 部署方式的详细说明
+
+### 2024-03-04
 
 #### 新增功能
 - 集成Nuclei漏洞扫描工具

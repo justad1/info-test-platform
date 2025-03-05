@@ -1,0 +1,724 @@
+/* 黑客风格仪表盘CSS */
+@import url('https://fonts.googleapis.com/css2?family=Share+Tech+Mono&display=swap');
+
+:root {
+  --hacker-bg: #000000;
+  --hacker-text: #00fffc;
+  --hacker-glow: #00a4a2;
+  --hacker-accent: #00fffd;
+  --hacker-dark: #111111;
+  --hacker-darker: #0a0a0a;
+  --hacker-light: #222222;
+  --hacker-lighter: #333333;
+}
+
+/* 基础样式 */
+.hacker-theme {
+  background: var(--hacker-bg);
+  color: var(--hacker-text);
+  font-family: 'Share Tech Mono', monospace;
+}
+
+/* 搜索框和按钮容器 */
+.search-input-group {
+  display: flex !important;
+  align-items: center !important;
+  gap: 10px !important;
+  margin: 15px 0 !important;
+  padding: 10px !important;
+  background: var(--hacker-darker) !important;
+  border: 1px solid var(--hacker-glow) !important;
+  border-radius: 4px !important;
+}
+
+/* 搜索框样式 */
+.layui-input[type="search"],
+.layui-input.search-input,
+input[name="searchParams"] {
+  background: var(--hacker-darker) !important;
+  border: 1px solid var(--hacker-glow) !important;
+  color: var(--hacker-text) !important;
+  height: 38px !important;
+  line-height: 38px !important;
+  padding: 0 15px !important;
+  width: 200px !important;
+  transition: all 0.3s ease !important;
+  box-shadow: 0 0 5px var(--hacker-glow) !important;
+  font-family: 'Share Tech Mono', monospace !important;
+  letter-spacing: 1px !important;
+}
+
+.layui-input[type="search"]:focus,
+.layui-input.search-input:focus,
+input[name="searchParams"]:focus {
+  border-color: var(--hacker-text) !important;
+  box-shadow: 0 0 15px var(--hacker-text) !important;
+  width: 250px !important;
+  outline: none !important;
+}
+
+/* 搜索和重置按钮样式 */
+.layui-btn.search-btn,
+.layui-btn.reset-btn,
+button[lay-event="search"],
+button[lay-event="reset"] {
+  background: var(--hacker-darker) !important;
+  border: 1px solid var(--hacker-glow) !important;
+  color: var(--hacker-text) !important;
+  height: 38px !important;
+  line-height: 38px !important;
+  padding: 0 20px !important;
+  margin-left: 10px !important;
+  transition: all 0.3s ease !important;
+  box-shadow: 0 0 5px var(--hacker-glow) !important;
+  font-family: 'Share Tech Mono', monospace !important;
+  letter-spacing: 1px !important;
+  position: relative !important;
+  overflow: hidden !important;
+}
+
+.layui-btn.search-btn:hover,
+.layui-btn.reset-btn:hover,
+button[lay-event="search"]:hover,
+button[lay-event="reset"]:hover {
+  background: var(--hacker-glow) !important;
+  color: var(--hacker-bg) !important;
+  box-shadow: 0 0 15px var(--hacker-text) !important;
+  transform: translateY(-1px) !important;
+}
+
+.layui-btn.search-btn:active,
+.layui-btn.reset-btn:active,
+button[lay-event="search"]:active,
+button[lay-event="reset"]:active {
+  transform: translateY(1px) !important;
+  box-shadow: 0 0 5px var(--hacker-text) !important;
+}
+
+/* 搜索按钮图标 */
+.layui-btn.search-btn i,
+button[lay-event="search"] i {
+  margin-right: 5px !important;
+  font-size: 16px !important;
+}
+
+/* 搜索结果高亮 */
+.search-highlight {
+  background: rgba(0, 255, 252, 0.2) !important;
+  color: #ffffff !important;
+  text-shadow: 0 0 5px var(--hacker-text) !important;
+  padding: 0 3px !important;
+  border-radius: 2px !important;
+}
+
+/* 统一背景样式 */
+.layui-body,
+.layui-card,
+.layui-table-view,
+.layui-form {
+  background: var(--hacker-darker) !important;
+  border: 1px solid var(--hacker-glow) !important;
+  box-shadow: 0 0 10px var(--hacker-glow) !important;
+}
+
+/* 表格背景统一 */
+.layui-table {
+  background: var(--hacker-darker) !important;
+}
+
+.layui-table-header {
+  background: var(--hacker-dark) !important;
+}
+
+.layui-table-body {
+  background: var(--hacker-darker) !important;
+}
+
+.layui-table-cell {
+  color: var(--hacker-text) !important;
+}
+
+/* 搜索区域样式 */
+.search-area {
+  background: var(--hacker-darker) !important;
+  padding: 15px !important;
+  margin-bottom: 15px !important;
+  border: 1px solid var(--hacker-glow) !important;
+  box-shadow: 0 0 10px var(--hacker-glow) !important;
+  display: flex !important;
+  align-items: center !important;
+  gap: 10px !important;
+}
+
+/* 头部样式 */
+.hacker-header {
+  background: var(--hacker-darker) !important;
+  border-bottom: 1px solid var(--hacker-glow) !important;
+  box-shadow: 0 0 10px var(--hacker-glow) !important;
+  height: 50px !important;
+  line-height: 50px !important;
+  padding: 0 !important;
+  position: relative !important;
+  z-index: 100 !important;
+}
+
+.hacker-header:before {
+  content: '';
+  position: absolute;
+  top: 0;
+  left: 0;
+  right: 0;
+  height: 1px;
+  background: linear-gradient(90deg, 
+    transparent 0%, 
+    var(--hacker-text) 20%, 
+    var(--hacker-text) 80%, 
+    transparent 100%
+  );
+  opacity: 0.5;
+  animation: scan-line 2s linear infinite;
+}
+
+@keyframes scan-line {
+  0% {
+    transform: translateX(-100%);
+  }
+  100% {
+    transform: translateX(100%);
+  }
+}
+
+.hacker-logo {
+  background: var(--hacker-darker) !important;
+  border-right: 1px solid var(--hacker-glow) !important;
+  height: 50px !important;
+  line-height: 50px !important;
+  padding: 0 20px !important;
+  position: relative !important;
+  overflow: hidden !important;
+}
+
+.logo-text {
+  font-size: 16px !important;
+  font-weight: normal !important;
+  letter-spacing: 1px !important;
+  text-transform: uppercase !important;
+  color: var(--hacker-text) !important;
+  text-shadow: 0 0 5px var(--hacker-text), 0 0 10px var(--hacker-text) !important;
+  animation: text-flicker 3s linear infinite;
+}
+
+@keyframes text-flicker {
+  0%, 19.999%, 22%, 62.999%, 64%, 64.999%, 70%, 100% {
+    opacity: 1;
+  }
+  20%, 21.999%, 63%, 63.999%, 65%, 69.999% {
+    opacity: 0.4;
+  }
+}
+
+.logo-line {
+  position: absolute;
+  bottom: 0;
+  left: 0;
+  width: 100%;
+  height: 2px;
+  background: var(--hacker-text);
+  opacity: 0.5;
+  transform-origin: left;
+  animation: line-scan 2s ease-in-out infinite alternate;
+}
+
+@keyframes line-scan {
+  0% {
+    transform: scaleX(0);
+  }
+  100% {
+    transform: scaleX(1);
+  }
+}
+
+/* 导航样式 */
+.hacker-nav {
+  background: transparent !important;
+}
+
+.hacker-nav-link {
+  color: var(--hacker-text) !important;
+  transition: all 0.3s ease;
+}
+
+.hacker-nav-link:hover {
+  color: #ffffff !important;
+  text-shadow: 0 0 8px var(--hacker-text), 0 0 12px var(--hacker-text) !important;
+}
+
+.hacker-nav-child {
+  background: var(--hacker-darker) !important;
+  border: 1px solid var(--hacker-glow) !important;
+  box-shadow: 0 0 10px var(--hacker-glow) !important;
+}
+
+/* 侧边栏样式 */
+.hacker-side {
+  background: linear-gradient(to right, var(--hacker-darker), var(--hacker-dark)) !important;
+  border-right: 1px solid var(--hacker-glow) !important;
+  box-shadow: 0 0 10px var(--hacker-glow) !important;
+}
+
+/* 侧边栏导航树样式 */
+.hacker-nav-tree {
+  background: transparent !important;
+}
+
+.hacker-nav-tree .layui-nav-item {
+  border-bottom: 1px solid rgba(0, 164, 162, 0.2);
+}
+
+.hacker-nav-tree .layui-nav-child {
+  background: rgba(0, 0, 0, 0.6) !important;
+}
+
+.hacker-nav-tree .layui-this {
+  background-color: rgba(0, 255, 252, 0.1) !important;
+}
+
+.hacker-nav-tree .layui-this > a {
+  background-color: transparent !important;
+  color: #ffffff !important;
+  text-shadow: 0 0 8px var(--hacker-text), 0 0 12px var(--hacker-text) !important;
+}
+
+/* 侧边栏切换按钮 */
+.layui-side-toggle {
+  position: absolute !important;
+  left: 200px !important;
+  top: 50% !important;
+  width: 20px !important;
+  height: 60px !important;
+  line-height: 60px !important;
+  background-color: var(--hacker-darker) !important;
+  color: var(--hacker-text) !important;
+  text-align: center !important;
+  cursor: pointer !important;
+  border: 1px solid var(--hacker-glow) !important;
+  border-left: none !important;
+  box-shadow: 2px 0 5px var(--hacker-glow) !important;
+  transition: all 0.3s ease !important;
+  z-index: 999 !important;
+}
+
+.layui-side-toggle:hover {
+  background-color: var(--hacker-glow) !important;
+  color: var(--hacker-bg) !important;
+  box-shadow: 0 0 15px var(--hacker-text) !important;
+}
+
+.layui-side-toggle i {
+  font-size: 16px !important;
+  line-height: 60px !important;
+  transition: all 0.3s ease !important;
+}
+
+.layui-side-shrink .layui-side {
+  width: 0 !important;
+}
+
+.layui-side-shrink .layui-body,
+.layui-side-shrink .layui-footer {
+  left: 0 !important;
+}
+
+.layui-side-shrink .layui-side-toggle {
+  left: 0 !important;
+}
+
+/* 主体内容区域样式 */
+.hacker-body {
+  background: var(--hacker-bg) !important;
+  color: var(--hacker-text) !important;
+  border: none !important;
+}
+
+.hacker-card {
+  background: rgba(0, 0, 0, 0.7) !important;
+  border: 1px solid var(--hacker-glow) !important;
+  box-shadow: 0 0 15px var(--hacker-glow) !important;
+  position: relative;
+  overflow: hidden;
+}
+
+.hacker-card-header {
+  background: linear-gradient(to right, var(--hacker-darker), var(--hacker-dark)) !important;
+  color: var(--hacker-text) !important;
+  border-bottom: 1px solid var(--hacker-glow) !important;
+  font-family: 'Share Tech Mono', monospace !important;
+  position: relative;
+  padding-bottom: 10px !important;
+}
+
+.header-text {
+  animation: text-glow 2s ease-out infinite alternate;
+}
+
+.header-line {
+  position: absolute;
+  bottom: 0;
+  left: 0;
+  width: 100%;
+  height: 1px;
+  background: var(--hacker-text);
+  animation: line-glow 2s ease-out infinite alternate;
+}
+
+.hacker-card-body {
+  color: var(--hacker-text) !important;
+  position: relative;
+  z-index: 1;
+}
+
+/* 底部样式 */
+.hacker-footer {
+  background: transparent !important;
+  border: none !important;
+  box-shadow: none !important;
+  color: var(--hacker-text) !important;
+  font-family: 'Share Tech Mono', monospace !important;
+  position: relative;
+  padding: 0 !important;
+  margin: 0 !important;
+}
+
+.footer-text {
+  display: none !important;
+}
+
+.footer-line {
+  display: none !important;
+}
+
+/* 弹窗样式 */
+.hacker-layer {
+  background: var(--hacker-darker) !important;
+  border: 1px solid var(--hacker-glow) !important;
+  box-shadow: 0 0 15px var(--hacker-glow) !important;
+  color: var(--hacker-text) !important;
+}
+
+/* 弹窗关闭按钮 */
+.layui-layer-close {
+  background: none !important;
+  font-family: 'Share Tech Mono', monospace !important;
+  color: var(--hacker-text) !important;
+  text-shadow: 0 0 5px var(--hacker-text) !important;
+  font-size: 20px !important;
+  font-weight: bold !important;
+  right: 10px !important;
+  top: 10px !important;
+  width: 30px !important;
+  height: 30px !important;
+  line-height: 30px !important;
+  text-align: center !important;
+  border: 1px solid var(--hacker-glow) !important;
+  border-radius: 3px !important;
+  transition: all 0.3s ease !important;
+}
+
+.layui-layer-close:hover {
+  background: rgba(0, 255, 252, 0.1) !important;
+  box-shadow: 0 0 10px var(--hacker-text) !important;
+  transform: scale(1.1) !important;
+}
+
+.layui-layer-close:before {
+  content: '×' !important;
+}
+
+/* 弹窗标题 */
+.layui-layer-title {
+  background: var(--hacker-darker) !important;
+  border-bottom: 1px solid var(--hacker-glow) !important;
+  color: var(--hacker-text) !important;
+  font-family: 'Share Tech Mono', monospace !important;
+  text-shadow: 0 0 5px var(--hacker-text) !important;
+  padding: 0 15px !important;
+  height: 45px !important;
+  line-height: 45px !important;
+  border-radius: 3px 3px 0 0 !important;
+}
+
+/* 弹窗内容区域 */
+.layui-layer-content {
+  background: var(--hacker-darker) !important;
+  color: var(--hacker-text) !important;
+  padding: 20px !important;
+}
+
+/* 弹窗按钮区域 */
+.layui-layer-btn {
+  background: var(--hacker-darker) !important;
+  border-top: 1px solid var(--hacker-glow) !important;
+  padding: 15px !important;
+}
+
+.layui-layer-btn a {
+  background: linear-gradient(to bottom, var(--hacker-glow), var(--hacker-dark)) !important;
+  color: var(--hacker-text) !important;
+  border: 1px solid var(--hacker-glow) !important;
+  box-shadow: 0 0 5px var(--hacker-glow) !important;
+  font-family: 'Share Tech Mono', monospace !important;
+  transition: all 0.3s ease !important;
+}
+
+.layui-layer-btn a:hover {
+  background: linear-gradient(to bottom, var(--hacker-text), var(--hacker-glow)) !important;
+  box-shadow: 0 0 10px var(--hacker-text) !important;
+}
+
+/* 表格样式 */
+.layui-table {
+  background: rgba(0, 0, 0, 0.7) !important;
+  color: var(--hacker-text) !important;
+}
+
+.layui-table th {
+  background: linear-gradient(to bottom, var(--hacker-darker), var(--hacker-dark)) !important;
+  color: var(--hacker-text) !important;
+  border-color: var(--hacker-glow) !important;
+}
+
+.layui-table td {
+  border-color: rgba(0, 164, 162, 0.3) !important;
+}
+
+.layui-table-hover tbody tr:hover {
+  background-color: rgba(0, 255, 252, 0.1) !important;
+}
+
+/* 表单样式 */
+.layui-input, .layui-textarea, .layui-select {
+  background: var(--hacker-light) !important;
+  border: 1px solid var(--hacker-glow) !important;
+  color: var(--hacker-text) !important;
+}
+
+.layui-input:focus, .layui-textarea:focus {
+  border-color: var(--hacker-text) !important;
+  box-shadow: 0 0 5px var(--hacker-text) !important;
+}
+
+.layui-form-label {
+  color: var(--hacker-text) !important;
+}
+
+.layui-btn {
+  background: linear-gradient(to bottom, var(--hacker-glow), var(--hacker-dark)) !important;
+  color: var(--hacker-text) !important;
+  border: 1px solid var(--hacker-glow) !important;
+  box-shadow: 0 0 5px var(--hacker-glow) !important;
+  transition: all 0.3s ease;
+}
+
+.layui-btn:hover {
+  background: linear-gradient(to bottom, var(--hacker-text), var(--hacker-glow)) !important;
+  box-shadow: 0 0 10px var(--hacker-text) !important;
+}
+
+/* 背景六边形 */
+.hexagons-bg {
+  position: absolute;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  opacity: 0.1;
+  z-index: -1;
+  background: 
+    linear-gradient(60deg, var(--hacker-text) 25%, transparent 25.5%),
+    linear-gradient(0deg, var(--hacker-text) 25%, transparent 25.5%),
+    linear-gradient(-60deg, var(--hacker-text) 25%, transparent 25.5%),
+    linear-gradient(-120deg, var(--hacker-text) 25%, transparent 25.5%),
+    linear-gradient(180deg, var(--hacker-text) 25%, transparent 25.5%),
+    linear-gradient(120deg, var(--hacker-text) 25%, transparent 25.5%);
+  background-size: 50px 30px;
+  animation: hexagon-move 60s linear infinite;
+}
+
+/* 圆形动画 */
+.hacker-circle {
+  position: fixed;
+  top: 50%;
+  left: 50%;
+  transform: translate(-50%, -50%);
+  width: 500px;
+  height: 500px;
+  border-radius: 50%;
+  border: 10px solid var(--hacker-glow);
+  box-shadow: 0 0 0 2px black, 0 0 0 6px var(--hacker-text);
+  opacity: 0.1;
+  z-index: -2;
+  animation: circle-rotate 20s linear infinite;
+  pointer-events: none;
+}
+
+.hacker-circle:before {
+  content: '';
+  position: absolute;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  border-radius: 50%;
+  border: 36px solid var(--hacker-text);
+  box-sizing: border-box;
+}
+
+.hacker-circle:after {
+  content: '';
+  position: absolute;
+  top: 50%;
+  left: 0;
+  width: 100%;
+  height: 1px;
+  background: var(--hacker-text);
+  box-shadow: 0 0 10px var(--hacker-text);
+  transform-origin: center;
+  animation: circle-line-rotate 10s linear infinite;
+}
+
+/* 故障效果 */
+.glitch {
+  position: relative;
+  animation: glitch 0.2s linear infinite;
+}
+
+/* 动画关键帧 */
+@keyframes text-glow {
+  0% {
+    text-shadow: 0 0 5px var(--hacker-text), 0 0 10px var(--hacker-text);
+  }
+  100% {
+    text-shadow: 0 0 10px var(--hacker-text), 0 0 20px var(--hacker-text), 0 0 30px var(--hacker-text);
+  }
+}
+
+@keyframes line-glow {
+  0% {
+    box-shadow: 0 0 5px var(--hacker-text);
+  }
+  100% {
+    box-shadow: 0 0 10px var(--hacker-text), 0 0 20px var(--hacker-text);
+  }
+}
+
+@keyframes circle-rotate {
+  0% {
+    transform: translate(-50%, -50%) rotate(0deg);
+  }
+  100% {
+    transform: translate(-50%, -50%) rotate(360deg);
+  }
+}
+
+@keyframes circle-line-rotate {
+  0% {
+    transform: rotate(0deg);
+  }
+  100% {
+    transform: rotate(360deg);
+  }
+}
+
+@keyframes hexagon-move {
+  0% {
+    background-position: 0 0;
+  }
+  100% {
+    background-position: 100px 100px;
+  }
+}
+
+@keyframes glitch {
+  0% {
+    transform: translate(0);
+  }
+  20% {
+    transform: translate(-2px, 2px);
+  }
+  40% {
+    transform: translate(-2px, -2px);
+  }
+  60% {
+    transform: translate(2px, 2px);
+  }
+  80% {
+    transform: translate(2px, -2px);
+  }
+  100% {
+    transform: translate(0);
+  }
+}
+
+/* 自定义滚动条 */
+::-webkit-scrollbar {
+  width: 8px;
+  height: 8px;
+}
+
+::-webkit-scrollbar-track {
+  background: var(--hacker-darker);
+}
+
+::-webkit-scrollbar-thumb {
+  background: var(--hacker-glow);
+  border-radius: 4px;
+}
+
+::-webkit-scrollbar-thumb:hover {
+  background: var(--hacker-text);
+  box-shadow: 0 0 5px var(--hacker-text);
+}
+
+/* 响应式调整 */
+@media screen and (max-width: 768px) {
+  .hacker-circle {
+    width: 300px;
+    height: 300px;
+  }
+  
+  .hacker-logo, .header-text, .footer-text {
+    font-size: 14px !important;
+  }
+}
+
+/* 页面容器样式 */
+.layui-fluid {
+  padding: 0 !important;
+  margin: 0 !important;
+  border: none !important;
+}
+
+.layui-card {
+  margin-bottom: 0 !important;
+  border-radius: 0 !important;
+}
+
+.layui-layout-admin .layui-body {
+  bottom: 0 !important;
+  border-bottom: none !important;
+}
+
+/* 表格底部样式 */
+.layui-table-page {
+  border-bottom: none !important;
+  background: transparent !important;
+}
+
+.layui-table-box {
+  border-bottom: none !important;
+}
+
+.layui-table-view {
+  margin: 0 !important;
+  border-bottom: none !important;
+} 

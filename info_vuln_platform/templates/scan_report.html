@@ -1,0 +1,204 @@
+{% extends 'base.html' %}
+
+{% block title %}扫描报告{% endblock %}
+
+{% block page_title %}扫描报告{% endblock %}
+
+{% block content %}
+<div class="layui-fluid">
+    <div class="layui-row layui-col-space15">
+        <div class="layui-col-md12">
+            <div class="layui-card">
+                <div class="layui-card-body">
+                    <!-- 搜索表单 -->
+                    <form class="layui-form" action="">
+                        <div class="layui-row layui-col-space15">
+                            <div class="layui-col-md3">
+                                <div class="layui-form-item">
+                                    <label class="layui-form-label">报告标题</label>
+                                    <div class="layui-input-block">
+                                        <input type="text" name="title" placeholder="请输入报告标题" autocomplete="off" class="layui-input">
+                                    </div>
+                                </div>
+                            </div>
+                            <div class="layui-col-md3">
+                                <div class="layui-form-item">
+                                    <label class="layui-form-label">扫描目标</label>
+                                    <div class="layui-input-block">
+                                        <input type="text" name="target" placeholder="请输入扫描目标" autocomplete="off" class="layui-input">
+                                    </div>
+                                </div>
+                            </div>
+                            <div class="layui-col-md3">
+                                <div class="layui-form-item">
+                                    <label class="layui-form-label">报告类型</label>
+                                    <div class="layui-input-block">
+                                        <select name="report_type">
+                                            <option value="">全部类型</option>
+                                            <option value="subdomain">子域名扫描</option>
+                                            <option value="portscan">端口扫描</option>
+                                            <option value="dirscan">目录扫描</option>
+                                            <option value="fingerprint">指纹识别</option>
+                                            <option value="vulnscan">漏洞扫描</option>
+                                        </select>
+                                    </div>
+                                </div>
+                            </div>
+                            <div class="layui-col-md3">
+                                <div class="layui-form-item">
+                                    <div class="layui-input-block" style="margin-left: 0;">
+                                        <button class="layui-btn" lay-submit lay-filter="search-form">
+                                            <i class="layui-icon">&#xe615;</i> 搜索
+                                        </button>
+                                        <button type="reset" class="layui-btn layui-btn-primary">
+                                            <i class="layui-icon">&#xe669;</i> 重置
+                                        </button>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </form>
+                    
+                    <!-- 数据表格 -->
+                    <table class="layui-hide" id="report-table" lay-filter="report-table"></table>
+                    
+                    <!-- 工具栏模板 -->
+                    <script type="text/html" id="toolbar">
+                        <div class="layui-btn-container">
+                            <button class="layui-btn layui-btn-sm" lay-event="import-subdomain">导入子域名历史</button>
+                            <button class="layui-btn layui-btn-sm" lay-event="import-portscan">导入端口扫描历史</button>
+                            <button class="layui-btn layui-btn-sm" lay-event="import-dirscan">导入目录扫描历史</button>
+                            <button class="layui-btn layui-btn-sm" lay-event="import-fingerprint">导入指纹识别历史</button>
+                            <button class="layui-btn layui-btn-sm" lay-event="import-vulnscan">导入漏洞扫描历史</button>
+                        </div>
+                    </script>
+                    
+                    <!-- 操作列模板 -->
+                    <script type="text/html" id="operation">
+                        <a class="layui-btn layui-btn-xs" lay-event="view">查看</a>
+                        <a class="layui-btn layui-btn-xs layui-btn-danger" lay-event="delete">删除</a>
+                    </script>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}
+
+{% block js %}
+<script>
+layui.use(['table', 'form', 'layer'], function(){
+    var table = layui.table;
+    var form = layui.form;
+    var layer = layui.layer;
+    
+    // 初始化表格
+    table.render({
+        elem: '#report-table',
+        url: '/manager/api/report/scan/',
+        toolbar: '#toolbar',
+        defaultToolbar: ['filter', 'exports', 'print'],
+        cols: [[
+            {type: 'checkbox', fixed: 'left'},
+            {field: 'id', title: 'ID', sort: true, width: 80},
+            {field: 'title', title: '报告标题'},
+            {field: 'report_type', title: '报告类型', templet: function(d){
+                var types = {
+                    'subdomain': '子域名扫描',
+                    'portscan': '端口扫描',
+                    'dirscan': '目录扫描',
+                    'fingerprint': '指纹识别',
+                    'vulnscan': '漏洞扫描'
+                };
+                return types[d.report_type] || d.report_type;
+            }},
+            {field: 'target', title: '扫描目标'},
+            {field: 'scan_time', title: '扫描时间', sort: true},
+            {field: 'create_time', title: '创建时间', sort: true},
+            {fixed: 'right', title: '操作', toolbar: '#operation', width: 150}
+        ]],
+        page: true
+    });
+    
+    // 监听搜索表单提交
+    form.on('submit(search-form)', function(data){
+        table.reload('report-table', {
+            where: data.field
+        });
+        return false;
+    });
+    
+    // 监听工具条事件
+    table.on('toolbar(report-table)', function(obj){
+        var event = obj.event;
+        if (event.startsWith('import-')) {
+            var reportType = event.split('-')[1];
+            layer.confirm('确定要导入' + getReportTypeName(reportType) + '的历史记录吗？', function(index){
+                layer.close(index);
+                // 发送导入请求
+                $.ajax({
+                    url: '/manager/api/report/scan/',
+                    type: 'POST',
+                    contentType: 'application/json',
+                    data: JSON.stringify({
+                        action: 'import_history',
+                        report_type: reportType
+                    }),
+                    success: function(res){
+                        if(res.code === 0){
+                            layer.msg(res.msg);
+                            table.reload('report-table');
+                        } else {
+                            layer.msg('导入失败：' + res.msg);
+                        }
+                    },
+                    error: function(){
+                        layer.msg('导入失败，请检查网络连接');
+                    }
+                });
+            });
+        }
+    });
+    
+    // 获取报告类型名称
+    function getReportTypeName(type) {
+        var types = {
+            'subdomain': '子域名扫描',
+            'portscan': '端口扫描',
+            'dirscan': '目录扫描',
+            'fingerprint': '指纹识别',
+            'vulnscan': '漏洞扫描'
+        };
+        return types[type] || type;
+    }
+    
+    // 监听工具条
+    table.on('tool(report-table)', function(obj){
+        var data = obj.data;
+        if(obj.event === 'del'){
+            layer.confirm('确定删除此报告？', function(index){
+                // 发送删除请求
+                $.ajax({
+                    url: '/manager/api/report/scan/' + data.id + '/',
+                    type: 'DELETE',
+                    success: function(res){
+                        if(res.code === 0){
+                            obj.del();
+                            layer.close(index);
+                        } else {
+                            layer.msg('删除失败：' + res.msg);
+                        }
+                    },
+                    error: function(){
+                        layer.msg('删除失败，请检查网络连接');
+                    }
+                });
+            });
+        } else if(obj.event === 'view'){
+            // 查看报告详情
+            window.location.href = '/manager/report/scan/' + data.id + '/';
+        }
+    });
+});
+</script>
+{% endblock %} 

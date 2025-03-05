@@ -9,6 +9,7 @@ from .views_dirscan import DirScanView, DirScanApiView
 from .views_subdomain_scan import SubdomainScanView, SubdomainScanApiView
 from .views_vulnscan import VulnScanView, VulnScanApiView
 from .views_fingerscan import FingerprintScanView, FingerprintScanApiView
+from .views_report import ScanReportView, VulnerabilityReportView, ScanReportApiView, VulnerabilityReportApiView
 
 urlpatterns = [
     # 登录页面
@@ -124,4 +125,17 @@ urlpatterns = [
     # 指纹识别API
     path('api/fingerprint/scan/', csrf_exempt(FingerprintScanApiView.as_view()), name='fingerprint_scan_api'),
     path('api/fingerprint/scan/<int:scan_id>/', csrf_exempt(FingerprintScanApiView.as_view()), name='fingerprint_scan_detail'),
+    
+    # 报告管理
+    path('report/scan/', ScanReportView.as_view(), name='scan_report'),
+    path('report/vulnerability/', VulnerabilityReportView.as_view(), name='vulnerability_report'),
+    
+    # 报告管理API
+    path('api/report/scan/', csrf_exempt(ScanReportApiView.as_view()), name='scan_report_api'),
+    path('api/report/scan/<int:report_id>/', csrf_exempt(ScanReportApiView.as_view()), name='scan_report_detail'),
+    path('api/report/vulnerability/', csrf_exempt(VulnerabilityReportApiView.as_view()), name='vulnerability_report_api'),
+    path('api/report/vulnerability/<int:report_id>/', csrf_exempt(VulnerabilityReportApiView.as_view()), name='vulnerability_report_detail'),
+    
+    # 系统公告API
+    path('api/notices/', views.notice_api, name='notice_api'),
 ]

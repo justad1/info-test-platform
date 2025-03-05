@@ -13,6 +13,7 @@ from django.conf import settings
 from datetime import datetime
 
 from .models import UserLog, DirScan
+from .models_report import ScanReport
 from .decorators import login_required, api_login_required
 from .utils import get_client_ip
 
@@ -130,7 +131,10 @@ class DirScanApiView(View):
         try:
             # 构建.stat文件路径
             # 处理URL中的特殊字符，如冒号
-            target_domain = target_url.split('://')[1]
+            # 安全地解析目标域名
+            target_domain = target_url
+            if '://' in target_url:
+                target_domain = target_url.split('://')[1]
             target_domain = target_domain.replace(':', '_').replace('/', '_')
             stat_file = os.path.join(os.path.dirname(self.spray_path), f"{target_domain}.stat")
             logger.info(f"构建的统计文件路径: {stat_file}")
@@ -221,19 +225,21 @@ class DirScanApiView(View):
                 # 将输出分割成行并逐行处理
                 lines = output.splitlines()
                 logger.info(f"总行数: {len(lines)}")
+                logger.info(f"原始输出内容: {output}")
                 
                 # 先尝试查找包含URL的行
                 url_lines = []
                 for line in lines:
-                    if 'http' in line and not line.startswith('  ') and not line.startswith('[*]') and not line.startswith('total'):
+                    # 更宽松的URL匹配条件
+                    if ('http' in line or '/' in line) and not line.startswith('  ') and not line.startswith('[*]') and not line.startswith('total'):
                         url_lines.append(line)
+                        logger.info(f"找到可能的URL行: {line}")
                 
                 logger.info(f"找到包含URL的行数: {len(url_lines)}")
                 
-                # 如果没有找到任何URL行，记录一些输出样本以便调试
-                if not url_lines and lines:
-                    sample_lines = lines[:10] if len(lines) > 10 else lines
-                    logger.info(f"输出样本（前10行）: {sample_lines}")
+                # 如果没有找到任何URL行，记录完整输出以便调试
+                if not url_lines:
+                    logger.info(f"完整输出内容: {output}")
                 
                 # 处理每一行包含URL的内容
                 for line in url_lines:
@@ -245,37 +251,58 @@ class DirScanApiView(View):
                         if line.startswith('[warn]'):
                             continue
                         
-                        # 分割行内容
+                        # 尝试解析JSON格式
+                        try:
+                            json_data = json.loads(line)
+                            if isinstance(json_data, dict):
+                                url = json_data.get('url') or json_data.get('target') or json_data.get('path')
+                                if url:
+                                    result = {
+                                        'url': url,
+                                        'status_code': json_data.get('status_code', 200),
+                                        'content_length': json_data.get('content_length', 0),
+                                        'content_type': json_data.get('content_type', 'unknown'),
+                                        'response_time': json_data.get('response_time', 0),
+                                        'redirect_url': json_data.get('redirect_url', ''),
+                                        'title': json_data.get('title', '')
+                                    }
+                                    results.append(result)
+                                    continue
+                        except json.JSONDecodeError:
+                            pass
+                        
+                        # 如果不是JSON，尝试从文本中提取URL
                         parts = line.split()
-                        
-                        # 提取URL
                         url = None
+                        status_code = 200
+                        content_length = 0
+                        
+                        # 遍历所有部分查找URL和其他信息
                         for part in parts:
-                            if part.startswith('http'):
-                                url = part
-                                break
+                            if part.startswith('http') or (part.startswith('/') and len(part) > 1):
+                                url = part if part.startswith('http') else f"{target_url.rstrip('/')}{part}"
+                            elif part.isdigit():
+                                if len(part) == 3:  # 可能是状态码
+                                    status_code = int(part)
+                                else:  # 可能是内容长度
+                                    content_length = int(part)
                         
-                        if not url:
-                            logger.warning(f"行中未找到URL: {line}")
-                            continue
-                        
-                        # 创建结果对象
-                        result = {
-                            'url': url,
-                            'status_code': 200,  # 默认值
-                            'content_length': 0,
-                            'content_type': 'unknown',
-                            'response_time': 0,
-                            'redirect_url': '',
-                            'title': ''
-                        }
-                        
-                        logger.info(f"成功解析结果: {result}")
-                        results.append(result)
-                        
-                        # 更新状态码分布
-                        status = '200'  # 默认值
-                        status_distribution[status] = status_distribution.get(status, 0) + 1
+                        if url:
+                            result = {
+                                'url': url,
+                                'status_code': status_code,
+                                'content_length': content_length,
+                                'content_type': 'unknown',
+                                'response_time': 0,
+                                'redirect_url': '',
+                                'title': ''
+                            }
+                            logger.info(f"成功解析结果: {result}")
+                            results.append(result)
+                            
+                            # 更新状态码分布
+                            status = str(status_code)
+                            status_distribution[status] = status_distribution.get(status, 0) + 1
                         
                     except Exception as e:
                         logger.warning(f"解析行失败: {line}, 错误: {str(e)}")
@@ -614,5 +641,72 @@ class DirScanApiView(View):
             return JsonResponse({
                 'code': 500,
                 'msg': f'获取历史记录详情失败：{str(e)}',
+                'data': None
+            })
+
+    def generate_report(self, request):
+        """生成目录扫描报告"""
+        try:
+            scan_id = request.POST.get('scan_id')
+            if not scan_id:
+                return JsonResponse({
+                    'code': 400,
+                    'msg': '缺少扫描ID',
+                    'data': None
+                })
+            
+            # 获取扫描记录
+            scan = DirScan.objects.get(id=scan_id)
+            
+            # 生成报告标题
+            title = f"目录扫描报告 - {scan.target} - {scan.start_time.strftime('%Y-%m-%d %H:%M:%S')}"
+            
+            # 解析扫描结果
+            result_data = json.loads(scan.result) if scan.result else {}
+            
+            # 生成报告内容
+            content = {
+                'scan_info': {
+                    'target': scan.target,
+                    'wordlist': scan.wordlist,
+                    'start_time': scan.start_time.strftime('%Y-%m-%d %H:%M:%S'),
+                    'end_time': scan.end_time.strftime('%Y-%m-%d %H:%M:%S') if scan.end_time else '',
+                    'status': scan.status
+                },
+                'results': result_data.get('results', []),
+                'stats': {
+                    'total_dirs': len(result_data.get('results', [])),
+                    'status_distribution': result_data.get('status_distribution', {})
+                }
+            }
+            
+            # 创建扫描报告
+            report = ScanReport.objects.create(
+                title=title,
+                report_type='dirscan',
+                target=scan.target,
+                scan_time=scan.start_time,
+                content=json.dumps(content, ensure_ascii=False)
+            )
+            
+            return JsonResponse({
+                'code': 0,
+                'msg': '生成报告成功',
+                'data': {
+                    'report_id': report.id
+                }
+            })
+            
+        except DirScan.DoesNotExist:
+            return JsonResponse({
+                'code': 404,
+                'msg': '扫描记录不存在',
+                'data': None
+            })
+        except Exception as e:
+            logger.exception("生成报告失败")
+            return JsonResponse({
+                'code': 500,
+                'msg': f'生成报告失败：{str(e)}',
                 'data': None
             })

@@ -15,6 +15,7 @@ from datetime import datetime
 
 from .models import UserLog
 from .models_vulnscan import VulnScan
+from .models_report import ScanReport, VulnerabilityReport
 from .decorators import login_required, api_login_required
 from .utils import get_client_ip
 
@@ -221,8 +222,90 @@ class VulnScanApiView(View):
         logger.info(f"解析完成，发现{len(results)}个结果，严重级别分布: {severity_distribution}")
         return results, severity_distribution
     
+    def generate_report(self, request):
+        """生成扫描报告"""
+        try:
+            scan_id = request.POST.get('scan_id')
+            if not scan_id:
+                return JsonResponse({
+                    'code': 400,
+                    'msg': '缺少扫描ID',
+                    'data': None
+                })
+            
+            # 获取扫描记录
+            scan = VulnScan.objects.get(id=scan_id)
+            
+            # 生成报告标题
+            title = f"漏洞扫描报告 - {scan.target} - {scan.start_time.strftime('%Y-%m-%d %H:%M:%S')}"
+            
+            # 解析扫描结果
+            result_data = json.loads(scan.result) if scan.result else {}
+            
+            # 生成报告内容
+            content = {
+                'scan_info': {
+                    'target': scan.target,
+                    'start_time': scan.start_time.strftime('%Y-%m-%d %H:%M:%S'),
+                    'end_time': scan.end_time.strftime('%Y-%m-%d %H:%M:%S') if scan.end_time else '',
+                    'status': scan.status,
+                    'templates': scan.templates,
+                    'severity': scan.severity,
+                    'found_count': scan.found_count
+                },
+                'vulnerabilities': result_data.get('vulnerabilities', [])
+            }
+            
+            # 创建扫描报告
+            report = ScanReport.objects.create(
+                title=title,
+                report_type='vulnscan',
+                target=scan.target,
+                scan_time=scan.start_time,
+                content=json.dumps(content, ensure_ascii=False)
+            )
+            
+            # 如果发现漏洞，同时创建漏洞报告
+            vulnerabilities = result_data.get('vulnerabilities', [])
+            for vuln in vulnerabilities:
+                VulnerabilityReport.objects.create(
+                    title=f"{vuln.get('name', '未知漏洞')} - {scan.target}",
+                    target=scan.target,
+                    severity=vuln.get('severity', 'medium'),
+                    description=vuln.get('description', ''),
+                    solution=vuln.get('solution', ''),
+                    poc=vuln.get('poc', '')
+                )
+            
+            return JsonResponse({
+                'code': 0,
+                'msg': '生成报告成功',
+                'data': {
+                    'report_id': report.id
+                }
+            })
+            
+        except VulnScan.DoesNotExist:
+            return JsonResponse({
+                'code': 404,
+                'msg': '扫描记录不存在',
+                'data': None
+            })
+        except Exception as e:
+            logger.exception("生成报告失败")
+            return JsonResponse({
+                'code': 500,
+                'msg': f'生成报告失败：{str(e)}',
+                'data': None
+            })
+    
     def post(self, request):
-        """执行漏洞扫描"""
+        """处理POST请求"""
+        action = request.POST.get('action')
+        
+        if action == 'generate_report':
+            return self.generate_report(request)
+        
         try:
             # 解析请求数据
             data = json.loads(request.body)

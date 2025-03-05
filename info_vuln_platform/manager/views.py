@@ -7,8 +7,9 @@ from django.utils import timezone
 from django.utils.decorators import method_decorator
 from django.views.decorators.csrf import csrf_exempt
 from django.core.paginator import Paginator
+from django.views.decorators.http import require_http_methods
 
-from .models import User, UserLog, FingerprintCategory, Fingerprint, Subdomain, PocCategory, Poc, BaseInfoQuery
+from .models import User, UserLog, FingerprintCategory, Fingerprint, Subdomain, PocCategory, Poc, BaseInfoQuery, Notice
 from .decorators import login_required
 
 # 导入子域名管理视图
@@ -27,10 +28,7 @@ def hash_password(password):
 # 登录页面视图
 class IndexView(View):
     def get(self, request):
-        # 如果已经登录，重定向到后台首页
-        if request.session.get('user_id'):
-            return redirect('/manager/dashboard/')
-        return render(request, 'managerlogin.html')
+        return render(request, 'login.html')
     
     def post(self, request):
         try:
@@ -69,16 +67,9 @@ class IndexView(View):
 
 # 后台首页视图
 class DashboardView(View):
+    @method_decorator(login_required)
     def get(self, request):
-        # 检查用户是否登录
-        if not request.session.get('user_id'):
-            return redirect('/manager/')
-        
-        context = {
-            'username': request.session.get('username'),
-            'is_admin': request.session.get('is_admin')
-        }
-        return render(request, 'dashboard.html', context)
+        return render(request, 'dashboard.html')
 
 # 用户列表页面视图
 class UserListView(View):
@@ -1877,3 +1868,27 @@ class PocApiView(View):
         except Exception as e:
             # 返回错误响应
             return JsonResponse({'code': 500, 'msg': f'删除POC失败：{str(e)}'})
+
+@login_required
+@require_http_methods(['GET'])
+def notice_api(request):
+    """获取系统公告列表"""
+    try:
+        notices = Notice.objects.filter(is_active=True).values(
+            'title', 'content', 'created_at'
+        ).order_by('-created_at')[:5]  # 只返回最新的5条公告
+        
+        notices_list = list(notices)
+        for notice in notices_list:
+            notice['created_at'] = notice['created_at'].strftime('%Y-%m-%d %H:%M:%S')
+        
+        return JsonResponse({
+            'code': 200,
+            'message': '获取系统公告成功',
+            'notices': notices_list
+        })
+    except Exception as e:
+        return JsonResponse({
+            'code': 500,
+            'message': f'获取系统公告失败：{str(e)}'
+        })

@@ -61,6 +61,7 @@
                     <script type="text/html" id="subdomain-toolbar">
                         <div class="layui-btn-container">
                             <button class="layui-btn layui-btn-sm" lay-event="edit"><i class="layui-icon">&#xe642;</i> 编辑</button>
+                            <button class="layui-btn layui-btn-sm layui-btn-warm" lay-event="report"><i class="layui-icon">&#xe756;</i> 生成报告</button>
                             <button class="layui-btn layui-btn-sm layui-btn-danger" lay-event="del"><i class="layui-icon">&#xe640;</i> 删除</button>
                         </div>
                     </script>
@@ -193,6 +194,30 @@ layui.use(['table', 'form', 'jquery', 'layer'], function(){
                             obj.del();
                         } else {
                             layer.msg(res.msg, {icon: 2});
+                        }
+                    },
+                    error: function(){
+                        layer.msg('服务器错误', {icon: 2});
+                    }
+                });
+                layer.close(index);
+            });
+        } else if(obj.event === 'report'){
+            // 生成报告
+            layer.confirm('确定要为该子域名生成报告吗？', function(index){
+                $.ajax({
+                    url: '/manager/api/subdomain/report/',
+                    type: 'POST',
+                    data: {
+                        scan_id: data.id
+                    },
+                    success: function(res){
+                        if(res.code === 0){
+                            layer.msg('报告生成成功', {icon: 1});
+                            // 可以选择跳转到报告详情页面
+                            window.location.href = '/manager/report/scan/' + res.data.report_id + '/';
+                        } else {
+                            layer.msg(res.msg || '生成报告失败', {icon: 2});
                         }
                     },
                     error: function(){

@@ -655,7 +655,42 @@ layui.use(['form', 'table', 'layer', 'element'], function(){
                             layer.msg('加载历史记录详情失败：' + xhr.statusText, {icon: 2});
                         }
                     });
+                },
+                end: function(){
+                    // 清理图表实例
+                    var statusChart = echarts.getInstanceByDom(document.getElementById('history-status-chart'));
+                    var contentTypeChart = echarts.getInstanceByDom(document.getElementById('history-content-type-chart'));
+                    if(statusChart) {
+                        statusChart.dispose();
+                    }
+                    if(contentTypeChart) {
+                        contentTypeChart.dispose();
+                    }
                 }
+            });
+        } else if(obj.event === 'report'){
+            // 生成报告
+            layer.confirm('确定要为该扫描记录生成报告吗？', function(index){
+                $.ajax({
+                    url: '/manager/api/dirscan/report/',
+                    type: 'POST',
+                    data: {
+                        scan_id: data.id
+                    },
+                    success: function(res){
+                        if(res.code === 0){
+                            layer.msg('报告生成成功', {icon: 1});
+                            // 跳转到报告详情页面
+                            window.location.href = '/manager/report/scan/' + res.data.report_id + '/';
+                        } else {
+                            layer.msg(res.msg || '生成报告失败', {icon: 2});
+                        }
+                    },
+                    error: function(){
+                        layer.msg('服务器错误', {icon: 2});
+                    }
+                });
+                layer.close(index);
             });
         }
     });
