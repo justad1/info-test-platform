@@ -1,0 +1,191 @@
+/* 信息收集测试平台 - 管理页面主题 */
+/* 基于登录页面的风格 */
+
+/* 主背景色 */
+.layui-layout-admin {
+  background: #000;
+}
+
+/* 顶部导航栏 */
+.layui-header {
+  background: linear-gradient(#004746, #111111);
+  border-bottom: 2px solid #00a4a2;
+  box-shadow: 0 0 15px #00fffd;
+}
+
+.layui-logo {
+  color: #00a4a2 !important;
+  font-weight: bold;
+  text-shadow: 0 0 10px #000;
+}
+
+/* 侧边菜单 */
+.layui-side {
+  background: linear-gradient(#111111, #004746) !important;
+  border-right: 2px solid #00a4a2;
+  box-shadow: 0 0 15px #00fffd;
+}
+
+.layui-nav {
+  background: transparent;
+}
+
+.layui-nav .layui-nav-item a {
+  color: #888;
+  text-shadow: 0 -1px 0 #000;
+  transition: all 0.3s;
+}
+
+.layui-nav .layui-nav-item a:hover {
+  color: #00fffc;
+}
+
+.layui-nav .layui-this:after, 
+.layui-nav-bar {
+  background-color: #00a4a2;
+  box-shadow: 0 0 5px rgba(0, 255, 253, 0.5);
+}
+
+/* 内容区域卡片 */
+.layui-card {
+  background: #111;
+  background: linear-gradient(rgba(0, 71, 70, 0.7), rgba(17, 17, 17, 0.9));
+  border: 2px solid #00a4a2;
+  box-shadow: 0 0 15px rgba(0, 255, 253, 0.3);
+  border-radius: 5px;
+  transition: all 0.3s;
+}
+
+.layui-card:hover {
+  box-shadow: 0 0 20px rgba(0, 255, 253, 0.5);
+}
+
+.layui-card-header {
+  color: #00a4a2;
+  font-weight: bold;
+  border-bottom: 1px solid rgba(0, 164, 162, 0.5);
+}
+
+.layui-card-body {
+  color: #ccc;
+}
+
+/* 表单元素 */
+.layui-input, .layui-textarea, .layui-select {
+  background: #222;
+  background: linear-gradient(#333333, #222222);
+  border: 1px solid #444;
+  border-radius: 5px;
+  box-shadow: 0 2px 0 #000;
+  color: #888;
+  text-shadow: 0 -1px 0 #000;
+}
+
+.layui-input:focus, .layui-textarea:focus {
+  border-color: #00fffc;
+  box-shadow: 0 0 5px rgba(0, 255, 253, 0.2), inset 0 0 5px rgba(0, 255, 253, 0.1), 0 2px 0 #000;
+  color: #efe;
+}
+
+/* 按钮 */
+.layui-btn {
+  background: #222;
+  background: linear-gradient(#333333, #222222);
+  border: 1px solid #444;
+  border-radius: 5px;
+  box-shadow: 0 2px 0 #000;
+  color: #fff;
+  text-shadow: 0 -1px 0 #000;
+  transition: all 0.3s;
+}
+
+.layui-btn:hover {
+  background: #0C6125;
+  background: linear-gradient(#393939, #292929);
+  color: #00fffc;
+}
+
+.layui-btn-primary {
+  border: 1px solid #444;
+  color: #888;
+}
+
+.layui-btn-normal {
+  background: linear-gradient(#00a4a2, #007e7c);
+}
+
+.layui-btn-warm {
+  background: linear-gradient(#d16c21, #a85418);
+}
+
+.layui-btn-danger {
+  background: linear-gradient(#c12e2a, #9a2521);
+}
+
+/* 表格 */
+.layui-table {
+  background: #222;
+  color: #ccc;
+}
+
+.layui-table th {
+  background: linear-gradient(#333333, #222222);
+  color: #00a4a2;
+}
+
+.layui-table tr:hover {
+  background: rgba(0, 71, 70, 0.3);
+}
+
+/* 分页 */
+.layui-laypage a, .layui-laypage span {
+  background: #222;
+  color: #888;
+}
+
+.layui-laypage .layui-laypage-curr .layui-laypage-em {
+  background-color: #00a4a2;
+}
+
+/* 底部 */
+.layui-footer {
+  background: linear-gradient(#111111, #004746);
+  color: #888;
+  border-top: 1px solid #00a4a2;
+}
+
+/* 快速链接 */
+.quick-link {
+  background: rgba(17, 17, 17, 0.7);
+  border: 1px solid rgba(0, 164, 162, 0.3);
+  color: #ccc;
+  transition: all 0.3s;
+}
+
+.quick-link:hover {
+  background: rgba(0, 71, 70, 0.5);
+  border-color: #00a4a2;
+  transform: translateY(-3px);
+  box-shadow: 0 5px 15px rgba(0, 255, 253, 0.2);
+}
+
+.quick-link i {
+  color: #00a4a2;
+}
+
+/* 标题和文本 */
+h1, h2, h3, h4, h5 {
+  color: #00a4a2;
+  text-shadow: 0 0 5px rgba(0, 0, 0, 0.5);
+}
+
+/* 徽章 */
+.layui-badge {
+  box-shadow: 0 0 5px rgba(0, 0, 0, 0.3);
+}
+
+/* 适配暗色主题 */
+body {
+  background: #000;
+  color: #ccc;
+} 

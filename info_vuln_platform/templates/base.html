@@ -3,15 +3,90 @@
 <html>
 <head>
   <meta charset="utf-8">
-  <title>信息收集渗透测试平台</title>
+  <title>{% block title %}信息收集渗透测试平台{% endblock %}</title>
   <meta name="renderer" content="webkit">
   <meta http-equiv="X-UA-Compatible" content="IE=edge,chrome=1">
   <meta name="viewport" content="width=device-width, initial-scale=1">
   <link rel="stylesheet" href="{% static 'layui-v2.9.23/layui/css/layui.css' %}" media="all">
   <link rel="stylesheet" href="{% static 'css/admin.css' %}">
+  <link rel="stylesheet" href="{% static 'css/admin-theme.css' %}">
+  <link rel="stylesheet" href="{% static 'css/admin-theme-animations.css' %}">
   <script src="{% static 'layui-v2.9.23/layui/layui.js' %}"></script>
+  {% block styles %}{% endblock %}
 </head>
 <body>
+  <!-- 背景效果 -->
+  <div class="hexagons" style="z-index: 0; position: fixed; width: 100%; height: 100%; top: 0; left: 0; pointer-events: none;">
+    <span>&#x2B22;</span>
+    <span>&#x2B22;</span>
+    <span>&#x2B22;</span>
+    <span>&#x2B22;</span>
+    <span>&#x2B22;</span>
+    <span>&#x2B22;</span>
+    <span>&#x2B22;</span>
+    <span>&#x2B22;</span>
+    <span>&#x2B22;</span>
+    <span>&#x2B22;</span>
+    <span>&#x2B22;</span>
+    <span>&#x2B22;</span>
+    <br>
+    <span>&#x2B22;</span>
+    <span>&#x2B22;</span>
+    <span>&#x2B22;</span>
+    <span>&#x2B22;</span>
+    <span>&#x2B22;</span>
+    <span>&#x2B22;</span>
+    <span>&#x2B22;</span>
+    <span>&#x2B22;</span>
+    <span>&#x2B22;</span>
+    <span>&#x2B22;</span>
+    <span>&#x2B22;</span>
+    <br>
+    <span>&#x2B22;</span>
+    <span>&#x2B22;</span>
+    <span>&#x2B22;</span>
+    <span>&#x2B22;</span> 
+    <span>&#x2B22;</span>
+    <span>&#x2B22;</span>
+    <span>&#x2B22;</span>
+    <span>&#x2B22;</span>
+    <span>&#x2B22;</span>
+    <span>&#x2B22;</span>
+    <span>&#x2B22;</span>
+    <span>&#x2B22;</span>
+    <br>
+    <span>&#x2B22;</span>
+    <span>&#x2B22;</span>
+    <span>&#x2B22;</span>
+    <span>&#x2B22;</span>
+    <span>&#x2B22;</span>
+    <span>&#x2B22;</span>
+    <span>&#x2B22;</span>
+    <span>&#x2B22;</span>
+    <span>&#x2B22;</span>
+    <span>&#x2B22;</span>
+    <span>&#x2B22;</span>
+    <br>
+    <span>&#x2B22;</span>
+    <span>&#x2B22;</span>
+    <span>&#x2B22;</span>
+    <span>&#x2B22;</span>
+    <span>&#x2B22;</span>
+    <span>&#x2B22;</span>
+    <span>&#x2B22;</span>
+    <span>&#x2B22;</span>
+    <span>&#x2B22;</span>
+    <span>&#x2B22;</span>
+    <span>&#x2B22;</span>
+    <span>&#x2B22;</span>
+  </div>
+  
+  <div id="circle1">
+    <div id="inner-cirlce1">
+      <h2> </h2>
+    </div>
+  </div>
+
   <div class="layui-layout layui-layout-admin">
     <!-- 头部区域 -->
     <div class="layui-header">

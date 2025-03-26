@@ -102,3 +102,119 @@
     margin-left: 110px;
   }
 }
+
+/* 基础布局样式 */
+body {
+    position: relative;
+    overflow-x: hidden;
+    min-height: 100vh;
+}
+
+/* 快速链接布局 */
+.quick-link {
+    display: block;
+    text-align: center;
+    padding: 20px;
+    border-radius: 4px;
+    transition: all 0.3s;
+    margin-bottom: 15px;
+}
+
+.quick-link i {
+    font-size: 32px;
+    display: block;
+    margin-bottom: 10px;
+}
+
+.quick-link p {
+    margin-top: 10px;
+}
+
+/* 漏洞统计样式 */
+.vuln-stats p {
+    margin: 5px 0;
+}
+
+/* 通知列表 */
+#notice-list {
+    max-height: 300px;
+    overflow-y: auto;
+}
+
+/* 表格布局优化 */
+.layui-table {
+    margin: 10px 0;
+}
+
+/* 卡片布局优化 */
+.layui-card {
+    position: relative;
+    overflow: hidden;
+    margin-bottom: 15px;
+}
+
+/* 面包屑导航 */
+.layui-breadcrumb {
+    margin: 10px 0;
+}
+
+/* 按钮组样式 */
+.layui-btn-group {
+    margin: 10px 0;
+}
+
+/* 表单布局 */
+.layui-form-item {
+    margin-bottom: 15px;
+}
+
+/* 统一页面内边距 */
+.layui-body > .layui-fluid {
+    padding: 15px;
+}
+
+/* 文字对齐辅助类 */
+.text-center {
+    text-align: center;
+}
+
+.text-right {
+    text-align: right;
+}
+
+.text-left {
+    text-align: left;
+}
+
+/* 间距辅助类 */
+.mb-10 {
+    margin-bottom: 10px;
+}
+
+.mt-10 {
+    margin-top: 10px;
+}
+
+.p-10 {
+    padding: 10px;
+}
+
+/* 响应式优化 */
+@media screen and (max-width: 768px) {
+    .layui-hide-xs {
+        display: none !important;
+    }
+    
+    .layui-col-xs12 {
+        width: 100%;
+    }
+}
+
+/* 表单项间距 */
+.layui-form-label {
+    padding: 9px 15px;
+}
+
+.layui-input-block {
+    margin-left: 110px;
+}

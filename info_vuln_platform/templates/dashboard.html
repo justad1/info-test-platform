@@ -163,56 +163,6 @@
 </div>
 {% endblock %}
 
-{% block styles %}
-<style>
-body {
-    position: relative;
-    overflow-x: hidden;
-    min-height: 100vh;
-}
-
-.layui-card {
-    background: rgba(255, 255, 255, 0.95);
-    border: 1px solid rgba(0, 0, 0, 0.1);
-    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
-    position: relative;
-    overflow: hidden;
-}
-
-.quick-link {
-    display: block;
-    text-align: center;
-    padding: 20px;
-    border-radius: 4px;
-    transition: all 0.3s;
-}
-
-.quick-link:hover {
-    background: #f0f0f0;
-    transform: translateY(-2px);
-}
-
-.quick-link i {
-    font-size: 32px;
-    color: #009688;
-}
-
-.quick-link p {
-    margin-top: 10px;
-    color: #666;
-}
-
-.vuln-stats p {
-    margin: 5px 0;
-}
-
-#notice-list {
-    max-height: 300px;
-    overflow-y: auto;
-}
-</style>
-{% endblock %}
-
 {% block scripts %}
 <script>
 layui.use(['jquery', 'layer'], function(){
