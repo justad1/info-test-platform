@@ -235,6 +235,7 @@
 <!-- 历史记录表格工具栏 -->
 <script type="text/html" id="history-table-toolbar">
     <a class="layui-btn layui-btn-xs layui-btn-normal" lay-event="view"><i class="layui-icon layui-icon-search"></i> 查看</a>
+    <a class="layui-btn layui-btn-xs layui-btn-normal" lay-event="report"><i class="layui-icon layui-icon-export"></i> 生成报告</a>
 </script>
 {% endblock %}
 
@@ -498,132 +499,173 @@ layui.use(['form', 'table', 'layer'], function(){
                          '<p><strong>状态：</strong>' + data.status + '</p>' +
                          '</div></div></div>' +
                          '<div class="layui-col-md6"><div class="layui-card"><div class="layui-card-header">端口分布</div>' +
-                         '<div class="layui-card-body"><div id="history-port-chart" style="width: 100%; height: 300px;"></div></div></div></div>' +
+                         '<div class="layui-card-body">' +
+                         '<div id="port-chart" style="width: 100%; height: 300px;"></div>' +
+                         '</div></div></div>' +
                          '<div class="layui-col-md6"><div class="layui-card"><div class="layui-card-header">服务分布</div>' +
-                         '<div class="layui-card-body"><div id="history-service-chart" style="width: 100%; height: 300px;"></div></div></div></div>' +
-                         '<div class="layui-col-md12"><div class="layui-card"><div class="layui-card-header">扫描结果</div>' +
-                         '<div class="layui-card-body"><table id="history-result-table" lay-filter="history-result-table"></table></div></div></div>' +
+                         '<div class="layui-card-body">' +
+                         '<div id="service-chart" style="width: 100%; height: 300px;"></div>' +
+                         '</div></div></div>' +
+                         '<div class="layui-col-md12"><div class="layui-card"><div class="layui-card-header">开放端口</div>' +
+                         '<div class="layui-card-body" id="open-ports-container">' +
+                         '<div class="layui-text">加载中...</div>' +
+                         '</div></div></div>' +
                          '</div></div>',
-                success: function(layero, index){
+                success: function(){
                     // 加载历史记录详情
-                    $.ajax({
-                        url: '/manager/api/portscan/history/' + data.id + '/',
-                        type: 'GET',
-                        dataType: 'json',
-                        success: function(res){
-                            if(res.code === 0){
-                                // 渲染结果表格
-                                table.render({
-                                    elem: '#history-result-table',
-                                    data: res.data.results || [],
-                                    cols: [[
-                                        {field: 'host', title: '主机', width: 180},
-                                        {field: 'port', title: '端口', width: 100, sort: true},
-                                        {field: 'protocol', title: '协议', width: 100},
-                                        {field: 'service', title: '服务', width: 150},
-                                        {field: 'version', title: '版本', width: 200},
-                                        {field: 'banner', title: '横幅信息'}
-                                    ]],
-                                    page: true,
-                                    limit: 15,
-                                    limits: [15, 30, 50, 100],
-                                    text: {
-                                        none: '暂无扫描结果'
-                                    }
+                    $.getJSON('/manager/api/portscan/history/' + data.id + '/', function(res){
+                        if(res.code === 0){
+                            var detailData = res.data;
+                            
+                            // 更新开放端口列表
+                            var portsHtml = '<table class="layui-table">';
+                            portsHtml += '<thead><tr><th>端口</th><th>服务</th><th>产品</th><th>版本</th><th>操作系统</th></tr></thead>';
+                            portsHtml += '<tbody>';
+                            
+                            if(detailData.open_ports && detailData.open_ports.length > 0){
+                                detailData.open_ports.forEach(function(port){
+                                    var service = detailData.service_info[port] || {};
+                                    portsHtml += '<tr>';
+                                    portsHtml += '<td>' + port + '</td>';
+                                    portsHtml += '<td>' + (service.name || '-') + '</td>';
+                                    portsHtml += '<td>' + (service.product || '-') + '</td>';
+                                    portsHtml += '<td>' + (service.version || '-') + '</td>';
+                                    portsHtml += '<td>' + (service.os || '-') + '</td>';
+                                    portsHtml += '</tr>';
                                 });
-                                
-                                // 渲染端口分布图
-                                if(res.data.port_distribution){
-                                    var portChart = echarts.init(document.getElementById('history-port-chart'));
-                                    var portData = [];
-                                    for(var port in res.data.port_distribution){
-                                        portData.push({
-                                            name: port,
-                                            value: res.data.port_distribution[port]
-                                        });
-                                    }
-                                    portChart.setOption({
-                                        title: {
-                                            text: '端口分布',
-                                            left: 'center'
-                                        },
-                                        tooltip: {
-                                            trigger: 'item',
-                                            formatter: '{a} <br/>{b}: {c} ({d}%)'
-                                        },
-                                        legend: {
-                                            orient: 'vertical',
-                                            left: 'left',
-                                            data: portData.map(function(item){ return item.name; })
-                                        },
-                                        series: [
-                                            {
-                                                name: '端口',
-                                                type: 'pie',
-                                                radius: '50%',
-                                                data: portData,
-                                                emphasis: {
-                                                    itemStyle: {
-                                                        shadowBlur: 10,
-                                                        shadowOffsetX: 0,
-                                                        shadowColor: 'rgba(0, 0, 0, 0.5)'
-                                                    }
-                                                }
-                                            }
-                                        ]
-                                    });
-                                }
-                                
-                                // 渲染服务分布图
-                                if(res.data.service_distribution){
-                                    var serviceChart = echarts.init(document.getElementById('history-service-chart'));
-                                    var serviceData = [];
-                                    for(var service in res.data.service_distribution){
-                                        serviceData.push({
-                                            name: service || '未知',
-                                            value: res.data.service_distribution[service]
-                                        });
-                                    }
-                                    serviceChart.setOption({
-                                        title: {
-                                            text: '服务分布',
-                                            left: 'center'
-                                        },
-                                        tooltip: {
-                                            trigger: 'item',
-                                            formatter: '{a} <br/>{b}: {c} ({d}%)'
-                                        },
-                                        legend: {
-                                            orient: 'vertical',
-                                            left: 'left',
-                                            data: serviceData.map(function(item){ return item.name; })
-                                        },
-                                        series: [
-                                            {
-                                                name: '服务',
-                                                type: 'pie',
-                                                radius: '50%',
-                                                data: serviceData,
-                                                emphasis: {
-                                                    itemStyle: {
-                                                        shadowBlur: 10,
-                                                        shadowOffsetX: 0,
-                                                        shadowColor: 'rgba(0, 0, 0, 0.5)'
-                                                    }
-                                                }
-                                            }
-                                        ]
-                                    });
-                                }
                             } else {
-                                layer.msg('加载历史记录详情失败：' + res.msg, {icon: 2});
+                                portsHtml += '<tr><td colspan="5">无开放端口</td></tr>';
                             }
-                        },
-                        error: function(xhr){
-                            layer.msg('加载历史记录详情失败：' + xhr.statusText, {icon: 2});
+                            
+                            portsHtml += '</tbody></table>';
+                            $('#open-ports-container').html(portsHtml);
+                            
+                            // 绘制端口分布图
+                            var portChart = echarts.init(document.getElementById('port-chart'));
+                            var portData = {};
+                            detailData.open_ports.forEach(function(port){
+                                var range = Math.floor(port / 1000) * 1000;
+                                var rangeLabel = range + '-' + (range + 999);
+                                portData[rangeLabel] = (portData[rangeLabel] || 0) + 1;
+                            });
+                            
+                            var portOption = {
+                                title: {
+                                    text: '端口分布'
+                                },
+                                tooltip: {
+                                    trigger: 'axis',
+                                    axisPointer: {
+                                        type: 'shadow'
+                                    }
+                                },
+                                grid: {
+                                    left: '3%',
+                                    right: '4%',
+                                    bottom: '3%',
+                                    containLabel: true
+                                },
+                                xAxis: [
+                                    {
+                                        type: 'category',
+                                        data: Object.keys(portData),
+                                        axisTick: {
+                                            alignWithLabel: true
+                                        }
+                                    }
+                                ],
+                                yAxis: [
+                                    {
+                                        type: 'value'
+                                    }
+                                ],
+                                series: [
+                                    {
+                                        name: '端口数量',
+                                        type: 'bar',
+                                        barWidth: '60%',
+                                        data: Object.values(portData)
+                                    }
+                                ]
+                            };
+                            portChart.setOption(portOption);
+                            
+                            // 绘制服务分布图
+                            var serviceChart = echarts.init(document.getElementById('service-chart'));
+                            var serviceData = {};
+                            detailData.open_ports.forEach(function(port){
+                                var service = detailData.service_info[port] || {};
+                                var name = service.name || 'unknown';
+                                serviceData[name] = (serviceData[name] || 0) + 1;
+                            });
+                            
+                            var serviceOption = {
+                                title: {
+                                    text: '服务分布'
+                                },
+                                tooltip: {
+                                    trigger: 'item',
+                                    formatter: '{a} <br/>{b}: {c} ({d}%)'
+                                },
+                                legend: {
+                                    orient: 'vertical',
+                                    left: 10,
+                                    data: Object.keys(serviceData)
+                                },
+                                series: [
+                                    {
+                                        name: '服务',
+                                        type: 'pie',
+                                        radius: ['50%', '70%'],
+                                        avoidLabelOverlap: false,
+                                        label: {
+                                            show: false,
+                                            position: 'center'
+                                        },
+                                        emphasis: {
+                                            label: {
+                                                show: true,
+                                                fontSize: '30',
+                                                fontWeight: 'bold'
+                                            }
+                                        },
+                                        labelLine: {
+                                            show: false
+                                        },
+                                        data: Object.keys(serviceData).map(function(key){
+                                            return {name: key, value: serviceData[key]};
+                                        })
+                                    }
+                                ]
+                            };
+                            serviceChart.setOption(serviceOption);
                         }
                     });
                 }
+            });
+        } else if(obj.event === 'report'){
+            // 生成报告
+            layer.confirm('确定要为该端口扫描结果生成报告吗？', function(index){
+                $.ajax({
+                    url: '/manager/api/portscan/report/',
+                    type: 'POST',
+                    data: {
+                        scan_id: data.id
+                    },
+                    success: function(res){
+                        if(res.code === 0){
+                            layer.msg('报告生成成功', {icon: 1});
+                            // 可以选择跳转到报告详情页面
+                            window.location.href = '/manager/report/scan/' + res.data.report_id + '/';
+                        } else {
+                            layer.msg(res.msg || '生成报告失败', {icon: 2});
+                        }
+                    },
+                    error: function(){
+                        layer.msg('服务器错误', {icon: 2});
+                    }
+                });
+                layer.close(index);
             });
         }
     });

@@ -513,12 +513,26 @@ class DirScanApiView(View):
             # 生成CSV内容
             csv_content = "URL,状态码,内容长度,内容类型,页面标题,响应时间(ms),重定向URL\n"
             for result in results:
-                title = result.get('title', '').replace(',', ' ')  # 避免CSV中的逗号问题
-                csv_content += f"{result['url']},{result['status_code']},{result['content_length']},{result['content_type']},{title},{result['response_time']},{result['redirect_url']}\n"
+                # 处理可能包含逗号和换行符的字段
+                url = result.get('url', '').replace(',', '，')
+                status_code = result.get('status_code', '')
+                content_length = result.get('content_length', '')
+                content_type = result.get('content_type', '').replace(',', '，')
+                title = result.get('title', '').replace(',', '，').replace('\n', ' ')
+                response_time = result.get('response_time', '')
+                redirect_url = result.get('redirect_url', '').replace(',', '，')
+                
+                csv_content += f"{url},{status_code},{content_length},{content_type},{title},{response_time},{redirect_url}\n"
             
-            # 创建响应
-            response = HttpResponse(csv_content, content_type='text/csv')
+            # 创建响应，使用UTF-8-SIG编码（带BOM），确保Excel能正确识别中文
+            response = HttpResponse(content_type='text/csv; charset=utf-8-sig')
             response['Content-Disposition'] = f'attachment; filename="dirscan_{datetime.now().strftime("%Y%m%d_%H%M%S")}.csv"'
+            
+            # 写入UTF-8-SIG BOM
+            response.write('\ufeff')
+            
+            # 写入CSV内容
+            response.write(csv_content)
             
             return response
             

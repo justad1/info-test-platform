@@ -28,7 +28,7 @@ def hash_password(password):
 # 登录页面视图
 class IndexView(View):
     def get(self, request):
-        return render(request, 'login.html')
+        return render(request, 'managerlogin.html')
     
     def post(self, request):
         try:

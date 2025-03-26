@@ -93,6 +93,7 @@ urlpatterns = [
     path('api/portscan/export/', PortScanApiView.as_view(), name='portscan_export'),
     path('api/portscan/history/', PortScanApiView.as_view(), name='portscan_history'),
     path('api/portscan/history/<int:scan_id>/', PortScanApiView.as_view(), name='portscan_history_detail'),
+    path('api/portscan/report/', csrf_exempt(PortScanApiView.as_view()), name='portscan_report'),
     
     # 目录扫描页面
     path('dirscan/', DirScanView.as_view(), name='dirscan'),
@@ -102,6 +103,7 @@ urlpatterns = [
     path('api/dirscan/export/', DirScanApiView.as_view(), name='dirscan_export'),
     path('api/dirscan/history/', DirScanApiView.as_view(), name='dirscan_history'),
     path('api/dirscan/history/<int:scan_id>/', DirScanApiView.as_view(), name='dirscan_history_detail'),
+    path('api/dirscan/report/', csrf_exempt(DirScanApiView.as_view()), name='dirscan_report'),
     
     # 子域名扫描页面
     path('subdomain/scan/', SubdomainScanView.as_view(), name='subdomain_scan'),
@@ -109,6 +111,7 @@ urlpatterns = [
     # 子域名扫描API
     path('api/subdomain/scan/', csrf_exempt(SubdomainScanApiView.as_view()), name='subdomain_scan_api'),
     path('api/subdomain/scan/<int:scan_id>/', csrf_exempt(SubdomainScanApiView.as_view()), name='subdomain_scan_detail'),
+    path('api/subdomain/scan/report/', csrf_exempt(SubdomainScanApiView.as_view()), name='subdomain_scan_report'),
     
     # 漏洞扫描页面
     path('vulnscan/', VulnScanView.as_view(), name='vulnscan'),
@@ -125,6 +128,8 @@ urlpatterns = [
     # 指纹识别API
     path('api/fingerprint/scan/', csrf_exempt(FingerprintScanApiView.as_view()), name='fingerprint_scan_api'),
     path('api/fingerprint/scan/<int:scan_id>/', csrf_exempt(FingerprintScanApiView.as_view()), name='fingerprint_scan_detail'),
+    path('api/fingerprint/scan/<int:scan_id>/export/', csrf_exempt(FingerprintScanApiView.as_view()), name='fingerprint_scan_export'),
+    path('api/fingerprint/scan/report/', csrf_exempt(FingerprintScanApiView.as_view()), name='fingerprint_scan_report'),
     
     # 报告管理
     path('report/scan/', ScanReportView.as_view(), name='scan_report'),

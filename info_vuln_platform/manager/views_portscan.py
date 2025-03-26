@@ -3,6 +3,7 @@ import os
 import subprocess
 import time
 import logging
+import threading
 from django.shortcuts import render
 from django.views import View
 from django.http import JsonResponse, HttpResponse
@@ -136,38 +137,52 @@ class PortScanApiView(View):
             # 获取扫描记录
             scan = PortScan.objects.get(id=scan_id)
             
-            # 生成报告标题
-            title = f"端口扫描报告 - {scan.target} - {scan.start_time.strftime('%Y-%m-%d %H:%M:%S')}"
+            # 检查扫描状态
+            if scan.status != 'completed':
+                return JsonResponse({
+                    'code': 400,
+                    'msg': '只能为已完成的扫描生成报告',
+                    'data': None
+                })
             
             # 解析扫描结果
             result_data = json.loads(scan.result) if scan.result else {}
             
-            # 生成报告内容
-            content = {
-                'scan_info': {
-                    'target': scan.target,
-                    'scan_type': scan.scan_type,
-                    'ports': scan.ports,
-                    'start_time': scan.start_time.strftime('%Y-%m-%d %H:%M:%S'),
-                    'end_time': scan.end_time.strftime('%Y-%m-%d %H:%M:%S') if scan.end_time else '',
-                    'status': scan.status
-                },
-                'open_ports': result_data.get('open_ports', []),
-                'service_info': result_data.get('service_info', {})
-            }
-            
             # 创建扫描报告
             report = ScanReport.objects.create(
-                title=title,
+                title=f"端口扫描报告 - {scan.target} - {scan.start_time.strftime('%Y-%m-%d %H:%M:%S')}",
                 report_type='portscan',
                 target=scan.target,
                 scan_time=scan.start_time,
-                content=json.dumps(content, ensure_ascii=False)
+                content=json.dumps({
+                    'scan_info': {
+                        'target': scan.target,
+                        'scan_type': scan.scan_type,
+                        'ports': scan.ports,
+                        'start_time': scan.start_time.strftime('%Y-%m-%d %H:%M:%S'),
+                        'end_time': scan.end_time.strftime('%Y-%m-%d %H:%M:%S') if scan.end_time else '',
+                        'status': scan.status
+                    },
+                    'open_ports': result_data.get('open_ports', []),
+                    'service_info': result_data.get('service_info', {})
+                }, ensure_ascii=False)
+            )
+            
+            # 记录用户操作日志
+            UserLog.objects.create(
+                username=request.session.get('username', 'unknown'),
+                action='生成端口扫描报告',
+                ip=get_client_ip(request),
+                content=json.dumps({
+                    'scan_id': scan.id,
+                    'report_id': report.id,
+                    'target': scan.target
+                }, ensure_ascii=False)
             )
             
             return JsonResponse({
                 'code': 0,
-                'msg': '生成报告成功',
+                'msg': '报告生成成功',
                 'data': {
                     'report_id': report.id
                 }
@@ -188,157 +203,69 @@ class PortScanApiView(View):
             })
     
     def post(self, request):
-        """执行端口扫描"""
+        """处理端口扫描请求"""
         try:
-            # 解析请求数据
-            data = json.loads(request.body)
-            logger.info(f"接收到的扫描请求数据: {data}")
+            action = request.POST.get('action')
             
-            # 处理目标主机数据
-            if isinstance(data.get('hosts'), str):
-                # 如果hosts是字符串，按换行符分割
-                hosts = [h.strip() for h in data['hosts'].split('\n') if h.strip()]
-                data['hosts'] = hosts
+            # 生成报告
+            if action == 'report':
+                return self.generate_report(request)
             
-            # 检查naabu是否存在
-            if not os.path.exists(self.naabu_path):
-                logger.error(f"Naabu工具不存在: {self.naabu_path}")
-                return JsonResponse({
-                    'code': 500,
-                    'msg': 'Naabu工具不存在',
-                    'data': None
-                })
+            # 开始扫描
+            body_data = json.loads(request.body)
+            target = body_data.get('target', '').strip()
+            scan_type = body_data.get('scan_type', 'tcp')
+            ports = body_data.get('ports', '1-1000')
+            threads = body_data.get('threads', 10)
+            timeout = body_data.get('timeout', 5)
             
-            # 检查naabu是否可执行
-            if not os.access(self.naabu_path, os.X_OK):
-                logger.error(f"Naabu工具没有执行权限: {self.naabu_path}")
-                try:
-                    os.chmod(self.naabu_path, 0o755)
-                    logger.info("已添加执行权限")
-                except Exception as e:
-                    logger.error(f"添加执行权限失败: {str(e)}")
-                    return JsonResponse({
-                        'code': 500,
-                        'msg': 'Naabu工具没有执行权限',
-                        'data': None
-                    })
+            # 验证参数
+            if not target:
+                return JsonResponse({'code': 400, 'msg': '请输入扫描目标', 'data': None})
             
-            # 构建命令
-            cmd, targets = self.build_command(data)
-            logger.info(f"构建的命令: {' '.join(cmd)}")
+            # 验证目标格式（IP地址或域名）
+            if not self.is_valid_target(target):
+                return JsonResponse({'code': 400, 'msg': '无效的扫描目标格式', 'data': None})
             
-            if not targets:
-                return JsonResponse({
-                    'code': 400,
-                    'msg': '请输入有效的目标主机',
-                    'data': None
-                })
-            
-            # 创建扫描记录
-            scan_record = PortScan.objects.create(
-                target=', '.join(targets),
-                scan_type='connect',
-                ports=data.get('custom_ports') or f"Top {data.get('top_ports', '100')}",
-                status='running'
+            # 创建扫描任务
+            task = PortScan.objects.create(
+                target=target,
+                scan_type=scan_type,
+                ports=ports,
+                threads=int(threads),
+                timeout=int(timeout),
+                status='running',
+                start_time=timezone.now()
             )
             
-            # 记录开始时间
-            start_time = time.time()
-            
-            try:
-                # 执行扫描
-                logger.info(f"开始执行命令，工作目录: {os.getcwd()}")
-                process = subprocess.Popen(
-                    cmd,
-                    stdout=subprocess.PIPE,
-                    stderr=subprocess.PIPE,
-                    universal_newlines=True,
-                    cwd=os.path.dirname(self.naabu_path)  # 设置工作目录为naabu所在目录
-                )
-                
-                # 获取输出
-                stdout, stderr = process.communicate()
-                return_code = process.returncode
-                
-                # 合并stdout和stderr的输出进行处理
-                output = stdout + stderr
-                logger.info(f"命令返回码: {return_code}")
-                logger.info(f"命令输出: {output}")
-                
-                # 解析结果
-                results, port_distribution, service_distribution = self.parse_results(output)
-                logger.info(f"解析到的结果数量: {len(results)}")
-                
-                if not results:
-                    logger.warning("没有扫描到开放端口")
-                
-            except Exception as e:
-                logger.exception("命令执行异常")
-                scan_record.status = 'failed'
-                scan_record.save()
-                return JsonResponse({
-                    'code': 500,
-                    'msg': f'命令执行失败：{str(e)}',
-                    'data': None
-                })
-            
-            # 计算扫描时间
-            duration = time.time() - start_time
-            
-            # 更新扫描记录
-            scan_record.status = 'completed'
-            scan_record.result = json.dumps({
-                'results': results,
-                'port_distribution': port_distribution,
-                'service_distribution': service_distribution
-            })
-            scan_record.end_time = timezone.now()
-            scan_record.save()
-            
-            # 统计信息
-            stats = {
-                'host_count': len(set(r['host'] for r in results)),
-                'port_count': len(results),
-                'duration': f"{duration:.2f}s",
-                'port_distribution': port_distribution,
-                'service_distribution': service_distribution
-            }
-            
-            # 保存结果到会话，用于导出
-            request.session['last_portscan_results'] = results
-            
             # 记录用户操作日志
-            user_id = request.session.get('user_id')
-            if user_id:
-                from .models import User
-                user = User.objects.get(id=user_id)
-                UserLog.objects.create(
-                    user=user,
-                    action='执行端口扫描',
-                    ip=get_client_ip(request),
-                    details=f'扫描目标：{", ".join(targets)}'
-                )
+            UserLog.objects.create(
+                username=request.session.get('username', 'unknown'),
+                action='创建端口扫描任务',
+                ip=get_client_ip(request),
+                content=json.dumps({
+                    'task_id': task.id,
+                    'target': target,
+                    'scan_type': scan_type,
+                    'ports': ports
+                }, ensure_ascii=False)
+            )
+            
+            # 启动扫描线程
+            t = threading.Thread(target=self.run_scan, args=(task,))
+            t.daemon = True
+            t.start()
             
             return JsonResponse({
                 'code': 0,
-                'msg': '扫描完成',
+                'msg': '扫描任务已创建',
                 'data': {
-                    'results': results,
-                    'stats': stats
+                    'task_id': task.id
                 }
             })
-        
-        except Exception as e:
-            logger.exception("端口扫描失败")
-            if 'scan_record' in locals():
-                scan_record.status = 'failed'
-                scan_record.save()
             
-            return JsonResponse({
-                'code': 500,
-                'msg': f'扫描失败：{str(e)}',
-                'data': None
-            })
+        except Exception as e:
+            return JsonResponse({'code': 500, 'msg': str(e), 'data': None})
     
     def get(self, request, scan_id=None):
         """处理GET请求，根据URL路径不同执行不同操作
@@ -375,11 +302,25 @@ class PortScanApiView(View):
             # 生成CSV内容
             csv_content = "主机,端口,协议,服务,版本,横幅信息\n"
             for result in results:
-                csv_content += f"{result['host']},{result['port']},{result['protocol']},{result['service']},{result['version']},{result['banner']}\n"
+                # 处理可能包含逗号和换行符的字段
+                host = result.get('host', '').replace(',', '，')
+                port = result.get('port', '')
+                protocol = result.get('protocol', '').replace(',', '，')
+                service = result.get('service', '').replace(',', '，')
+                version = result.get('version', '').replace(',', '，')
+                banner = result.get('banner', '').replace(',', '，').replace('\n', ' ')
+                
+                csv_content += f"{host},{port},{protocol},{service},{version},{banner}\n"
             
-            # 创建响应
-            response = HttpResponse(csv_content, content_type='text/csv')
+            # 创建响应，使用UTF-8-SIG编码（带BOM），确保Excel能正确识别中文
+            response = HttpResponse(content_type='text/csv; charset=utf-8-sig')
             response['Content-Disposition'] = f'attachment; filename="portscan_{datetime.now().strftime("%Y%m%d_%H%M%S")}.csv"'
+            
+            # 写入UTF-8-SIG BOM
+            response.write('\ufeff')
+            
+            # 写入CSV内容
+            response.write(csv_content)
             
             return response
             

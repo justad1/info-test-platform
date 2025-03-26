@@ -534,12 +534,24 @@ class VulnScanApiView(View):
                 references = "; ".join(result.get('reference', []))
                 # 处理描述中的逗号和换行符
                 description = result.get('description', '').replace(',', '，').replace('\n', ' ')
+                # 处理其他字段，确保所有字段都能正确处理中文
+                name = result.get('name', '').replace(',', '，')
+                severity = result.get('severity', '').replace(',', '，')
+                host = result.get('host', '').replace(',', '，')
+                type_ = result.get('type', '').replace(',', '，')
+                template_id = result.get('template_id', '').replace(',', '，')
                 
-                csv_content += f"{result.get('name', '')},{result.get('severity', '')},{result.get('host', '')},{result.get('type', '')},{result.get('template_id', '')},{description},{references}\n"
+                csv_content += f"{name},{severity},{host},{type_},{template_id},{description},{references}\n"
             
-            # 创建响应
-            response = HttpResponse(csv_content, content_type='text/csv')
+            # 创建响应，使用UTF-8-SIG编码（带BOM），确保Excel能正确识别中文
+            response = HttpResponse(content_type='text/csv; charset=utf-8-sig')
             response['Content-Disposition'] = f'attachment; filename="vulnscan_{datetime.now().strftime("%Y%m%d_%H%M%S")}.csv"'
+            
+            # 写入UTF-8-SIG BOM
+            response.write('\ufeff')
+            
+            # 写入CSV内容
+            response.write(csv_content)
             
             return response
             

@@ -284,24 +284,44 @@ class ScanReportApiView(View):
 class VulnerabilityReportApiView(View):
     """漏洞报告API"""
     
-    def get(self, request):
-        """获取漏洞报告列表"""
+    def get(self, request, report_id=None):
+        """获取漏洞报告列表或详情"""
         try:
+            # 如果有ID，获取详情
+            if report_id:
+                report = VulnerabilityReport.objects.get(id=report_id)
+                data = {
+                    'id': report.id,
+                    'title': report.title,
+                    'target': report.target,
+                    'severity': report.severity,
+                    'description': report.description,
+                    'solution': report.solution,
+                    'poc': report.poc,
+                    'create_time': report.create_time.strftime('%Y-%m-%d %H:%M:%S'),
+                    'update_time': report.update_time.strftime('%Y-%m-%d %H:%M:%S')
+                }
+                return JsonResponse({
+                    'code': 0,
+                    'msg': '',
+                    'data': data
+                })
+            
             # 获取查询参数
             page = int(request.GET.get('page', 1))
             limit = int(request.GET.get('limit', 10))
-            severity = request.GET.get('severity', '')
             title = request.GET.get('title', '')
             target = request.GET.get('target', '')
+            severity = request.GET.get('severity', '')
             
             # 构建查询条件
             filters = {}
-            if severity:
-                filters['severity'] = severity
             if title:
                 filters['title__icontains'] = title
             if target:
                 filters['target__icontains'] = target
+            if severity:
+                filters['severity'] = severity
             
             # 查询数据
             reports = VulnerabilityReport.objects.filter(**filters)
@@ -328,23 +348,34 @@ class VulnerabilityReportApiView(View):
                 'data': data
             })
             
+        except VulnerabilityReport.DoesNotExist:
+            return JsonResponse({
+                'code': 404,
+                'msg': '漏洞报告不存在',
+                'data': None
+            })
         except Exception as e:
             return JsonResponse({
                 'code': 500,
-                'msg': f'获取漏洞报告列表失败：{str(e)}',
+                'msg': f'获取漏洞报告失败：{str(e)}',
                 'data': None
             })
     
-    def post(self, request):
+    def post(self, request, report_id=None):
         """创建漏洞报告"""
         try:
             data = json.loads(request.body)
+            
+            # 检查是否是导入Nuclei历史记录请求
+            if data.get('action') == 'import_nuclei_history':
+                return self.import_nuclei_history(request)
+                
             title = data.get('title')
             target = data.get('target')
-            severity = data.get('severity')
-            description = data.get('description')
-            solution = data.get('solution')
-            poc = data.get('poc')
+            severity = data.get('severity', 'medium')
+            description = data.get('description', '')
+            solution = data.get('solution', '')
+            poc = data.get('poc', '')
             
             # 创建报告
             report = VulnerabilityReport.objects.create(
@@ -368,5 +399,60 @@ class VulnerabilityReportApiView(View):
             return JsonResponse({
                 'code': 500,
                 'msg': f'创建漏洞报告失败：{str(e)}',
+                'data': None
+            })
+            
+    def import_nuclei_history(self, request):
+        """导入Nuclei漏洞扫描历史记录到漏洞报告"""
+        try:
+            from .models_vulnscan import VulnScan
+            
+            imported_count = 0
+            # 获取所有已完成的Nuclei扫描记录
+            scans = VulnScan.objects.filter(status='completed')
+            
+            for scan in scans:
+                # 解析扫描结果
+                result_data = json.loads(scan.result) if scan.result else {}
+                vulnerabilities = result_data.get('vulnerabilities', [])
+                
+                # 导入每个漏洞
+                for vuln in vulnerabilities:
+                    if not vuln.get('name'):
+                        continue
+                        
+                    # 检查是否已存在相同的漏洞报告
+                    existing = VulnerabilityReport.objects.filter(
+                        title=f"{vuln.get('name')} - {scan.target}",
+                        target=scan.target,
+                        severity=vuln.get('severity', 'medium')
+                    ).first()
+                    
+                    if existing:
+                        continue  # 跳过已存在的
+                        
+                    # 创建漏洞报告
+                    VulnerabilityReport.objects.create(
+                        title=f"{vuln.get('name')} - {scan.target}",
+                        target=scan.target,
+                        severity=vuln.get('severity', 'medium'),
+                        description=vuln.get('description', ''),
+                        solution=vuln.get('solution', ''),
+                        poc=vuln.get('curl_command', vuln.get('poc', ''))
+                    )
+                    imported_count += 1
+            
+            return JsonResponse({
+                'code': 0,
+                'msg': f'成功导入{imported_count}条漏洞记录',
+                'data': {
+                    'count': imported_count
+                }
+            })
+                
+        except Exception as e:
+            return JsonResponse({
+                'code': 500,
+                'msg': f'导入Nuclei扫描记录失败：{str(e)}',
                 'data': None
             }) 

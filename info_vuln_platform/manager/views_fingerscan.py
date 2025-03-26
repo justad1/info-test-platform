@@ -11,6 +11,7 @@ from django.utils import timezone
 from django.core.paginator import Paginator
 from django.views.decorators.csrf import csrf_exempt
 from django.utils.decorators import method_decorator
+from datetime import datetime
 
 from .models import FingerprintScan, UserLog, User
 from .decorators import login_required
@@ -33,6 +34,10 @@ class FingerprintScanApiView(View):
     def get(self, request, scan_id=None):
         """获取指纹识别扫描记录"""
         try:
+            # 处理导出请求
+            if 'export' in request.path:
+                return self.export_results(request, scan_id)
+                
             if scan_id:
                 # 获取单个扫描记录
                 scan = FingerprintScan.objects.get(id=scan_id)
@@ -403,3 +408,86 @@ class FingerprintScanApiView(View):
         # 添加其他
         for item in result['tech_stack']['other']:
             result['fingerprints'].append({'type': 'other', 'name': item})
+
+    @method_decorator(login_required)
+    def export_results(self, request, scan_id=None):
+        """导出指纹识别结果为CSV格式"""
+        try:
+            if not scan_id:
+                return JsonResponse({'code': 400, 'msg': '缺少扫描ID参数'})
+                
+            # 获取扫描记录
+            scan = FingerprintScan.objects.get(id=scan_id)
+            
+            # 解析结果
+            result_data = None
+            if scan.result:
+                try:
+                    result_data = json.loads(scan.result)
+                except json.JSONDecodeError:
+                    return JsonResponse({'code': 500, 'msg': '结果数据格式错误'})
+            else:
+                return JsonResponse({'code': 404, 'msg': '没有可导出的结果'})
+            
+            # 生成CSV内容
+            csv_content = "类型,名称,指纹\n"
+            
+            # 添加基本信息
+            csv_content += f"目标,{scan.target},\n"
+            if 'title' in result_data:
+                csv_content += f"标题,{result_data['title']},\n"
+            if 'web_server' in result_data:
+                csv_content += f"Web服务器,{result_data['web_server']},\n"
+            
+            # 添加指纹信息
+            for category, items in result_data.get('tech_stack', {}).items():
+                category_name = ""
+                if category == 'web_server':
+                    category_name = "Web服务器"
+                elif category == 'reverse_proxy':
+                    category_name = "反向代理"
+                elif category == 'programming_language':
+                    category_name = "编程语言"
+                elif category == 'ui_framework':
+                    category_name = "UI框架"
+                elif category == 'javascript_library':
+                    category_name = "JavaScript库"
+                elif category == 'cms':
+                    category_name = "CMS系统"
+                elif category == 'other':
+                    category_name = "其他"
+                
+                for item in items:
+                    # 处理可能包含逗号的字段，确保正确导出
+                    safe_item = item.replace(',', '，')
+                    csv_content += f"{category_name},{safe_item},\n"
+            
+            # 设置响应头，使用UTF-8-SIG（带BOM），确保Excel能正确识别中文
+            response = HttpResponse(content_type='text/csv; charset=utf-8-sig')
+            response['Content-Disposition'] = f'attachment; filename="fingerprint_scan_{scan_id}_{datetime.now().strftime("%Y%m%d_%H%M%S")}.csv"'
+            
+            # 写入UTF-8-SIG BOM
+            response.write('\ufeff')
+            
+            # 写入CSV内容
+            response.write(csv_content)
+            
+            # 记录日志
+            if request.session.get('user_id'):
+                try:
+                    user = User.objects.get(id=request.session.get('user_id'))
+                    UserLog.objects.create(
+                        user=user,
+                        action='导出指纹识别结果',
+                        ip=request.META.get('REMOTE_ADDR'),
+                        details=f'导出了指纹识别扫描结果，ID: {scan_id}, 目标: {scan.target}'
+                    )
+                except User.DoesNotExist:
+                    pass
+            
+            return response
+        
+        except FingerprintScan.DoesNotExist:
+            return JsonResponse({'code': 404, 'msg': '扫描记录不存在'})
+        except Exception as e:
+            return JsonResponse({'code': 500, 'msg': f'导出失败：{str(e)}'})
