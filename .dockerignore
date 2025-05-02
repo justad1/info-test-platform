@@ -1,0 +1,54 @@
+# Git
+.git
+.gitignore
+
+# Docker
+.docker
+docker-compose.yml
+Dockerfile
+.dockerignore
+
+# Python
+__pycache__/
+*.py[cod]
+*$py.class
+*.so
+.Python
+env/
+build/
+develop-eggs/
+dist/
+downloads/
+eggs/
+.eggs/
+lib64/
+parts/
+sdist/
+var/
+*.egg-info/
+.installed.cfg
+*.egg
+
+# 虚拟环境
+venv/
+ENV/
+
+# 数据库
+*.sqlite3
+*.db
+
+# 日志
+*.log
+
+# 本地媒体文件
+media/
+static/
+
+# 其他
+.DS_Store
+.env
+.env.local
+.env.development.local
+.env.test.local
+.env.production.local
+node_modules/ 
