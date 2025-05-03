@@ -282,6 +282,12 @@ layui.use(['form', 'table', 'layer'], function(){
         $('#result-container').show();
         $('#scan-status').html('<span class="layui-badge layui-bg-blue">扫描中</span>');
         
+        // 清空之前的结果
+        $('#host-count').text('0');
+        $('#port-count').text('0');
+        $('#scan-time').text('0s');
+        resultTable.reload({data: []});
+        
         // 构建请求参数
         var params = {
             hosts: data.field.hosts,  // 直接传递文本内容，后端会处理分割
@@ -307,8 +313,9 @@ layui.use(['form', 'table', 'layer'], function(){
             success: function(res){
                 layer.close(loadIndex);
                 if(res.code === 0){
-                    updateScanResults(res.data);
-                    layer.msg('扫描完成', {icon: 1});
+                    var taskId = res.data.task_id;
+                    // 开始轮询扫描状态
+                    startPollingStatus(taskId);
                 } else {
                     $('#scan-status').html('<span class="layui-badge layui-bg-red">失败</span>');
                     layer.msg('扫描失败：' + res.msg, {icon: 2});
@@ -323,6 +330,77 @@ layui.use(['form', 'table', 'layer'], function(){
         
         return false;
     });
+    
+    // 轮询扫描状态
+    var statusPollingTimer;
+    function startPollingStatus(taskId) {
+        // 保存当前扫描ID，供导出功能使用
+        $('.layui-form').data('scan-id', taskId);
+        
+        // 清除之前的定时器
+        if (statusPollingTimer) {
+            clearInterval(statusPollingTimer);
+        }
+        
+        // 每秒查询一次扫描状态
+        statusPollingTimer = setInterval(function() {
+            $.ajax({
+                url: '/manager/api/portscan/status/' + taskId + '/',
+                type: 'GET',
+                success: function(res) {
+                    if (res.code === 0) {
+                        // 更新扫描状态和结果
+                        var data = res.data;
+                        
+                        // 更新统计信息
+                        $('#host-count').text(data.stats.host_count);
+                        $('#port-count').text(data.stats.port_count);
+                        $('#scan-time').text(data.stats.duration);
+                        
+                        if (data.status === 'completed') {
+                            // 扫描完成，停止轮询
+                            clearInterval(statusPollingTimer);
+                            $('#scan-status').html('<span class="layui-badge layui-bg-green">已完成</span>');
+                            
+                            // 更新表格数据
+                            resultTable.reload({
+                                data: data.results
+                            });
+                            
+                            // 保存结果到session
+                            // 通过发送一次无害的请求实现
+                            $.post('/manager/api/portscan/save-results/', {
+                                results: JSON.stringify(data.results)
+                            });
+                            
+                            // 更新端口分布图
+                            if (data.stats.port_distribution) {
+                                updatePortDistribution(data.stats.port_distribution);
+                            }
+                            
+                            // 更新服务分布图
+                            if (data.stats.service_distribution) {
+                                updateServiceDistribution(data.stats.service_distribution);
+                            }
+                            
+                            layer.msg('扫描完成', {icon: 1});
+                        } else if (data.status === 'failed') {
+                            // 扫描失败，停止轮询
+                            clearInterval(statusPollingTimer);
+                            $('#scan-status').html('<span class="layui-badge layui-bg-red">失败</span>');
+                            layer.msg('扫描失败', {icon: 2});
+                        }
+                    }
+                },
+                error: function() {
+                    // 请求失败，停止轮询
+                    clearInterval(statusPollingTimer);
+                    $('#scan-status').html('<span class="layui-badge layui-bg-red">失败</span>');
+                    layer.msg('获取扫描状态失败', {icon: 2});
+                }
+            });
+        }, 1000);
+    }
     
     // 更新扫描结果
     function updateScanResults(data) {
@@ -424,7 +502,14 @@ layui.use(['form', 'table', 'layer'], function(){
     
     // 导出结果
     $('#export-btn').on('click', function(){
-        window.location.href = '/manager/api/portscan/export/';
+        // 获取当前扫描ID
+        var currentScanId = $('.layui-form').data('scan-id');
+        if (currentScanId) {
+            window.location.href = '/manager/api/portscan/export/?id=' + currentScanId;
+        } else {
+            // 没有扫描ID时，尝试导出最新结果
+            window.location.href = '/manager/api/portscan/export/';
+        }
     });
     
     // 标签切换
@@ -519,22 +604,22 @@ layui.use(['form', 'table', 'layer'], function(){
                             
                             // 更新开放端口列表
                             var portsHtml = '<table class="layui-table">';
-                            portsHtml += '<thead><tr><th>端口</th><th>服务</th><th>产品</th><th>版本</th><th>操作系统</th></tr></thead>';
+                            portsHtml += '<thead><tr><th>主机</th><th>端口</th><th>协议</th><th>服务</th><th>版本</th><th>横幅信息</th></tr></thead>';
                             portsHtml += '<tbody>';
                             
-                            if(detailData.open_ports && detailData.open_ports.length > 0){
-                                detailData.open_ports.forEach(function(port){
-                                    var service = detailData.service_info[port] || {};
+                            if(detailData.results && detailData.results.length > 0){
+                                detailData.results.forEach(function(result){
                                     portsHtml += '<tr>';
-                                    portsHtml += '<td>' + port + '</td>';
-                                    portsHtml += '<td>' + (service.name || '-') + '</td>';
-                                    portsHtml += '<td>' + (service.product || '-') + '</td>';
-                                    portsHtml += '<td>' + (service.version || '-') + '</td>';
-                                    portsHtml += '<td>' + (service.os || '-') + '</td>';
+                                    portsHtml += '<td>' + (result.host || '-') + '</td>';
+                                    portsHtml += '<td>' + (result.port || '-') + '</td>';
+                                    portsHtml += '<td>' + (result.protocol || 'tcp') + '</td>';
+                                    portsHtml += '<td>' + (result.service || '-') + '</td>';
+                                    portsHtml += '<td>' + (result.version || '-') + '</td>';
+                                    portsHtml += '<td>' + (result.banner || '-') + '</td>';
                                     portsHtml += '</tr>';
                                 });
                             } else {
-                                portsHtml += '<tr><td colspan="5">无开放端口</td></tr>';
+                                portsHtml += '<tr><td colspan="6">无开放端口</td></tr>';
                             }
                             
                             portsHtml += '</tbody></table>';
@@ -542,49 +627,33 @@ layui.use(['form', 'table', 'layer'], function(){
                             
                             // 绘制端口分布图
                             var portChart = echarts.init(document.getElementById('port-chart'));
-                            var portData = {};
-                            detailData.open_ports.forEach(function(port){
-                                var range = Math.floor(port / 1000) * 1000;
-                                var rangeLabel = range + '-' + (range + 999);
-                                portData[rangeLabel] = (portData[rangeLabel] || 0) + 1;
-                            });
-                            
                             var portOption = {
                                 title: {
                                     text: '端口分布'
                                 },
                                 tooltip: {
-                                    trigger: 'axis',
-                                    axisPointer: {
-                                        type: 'shadow'
-                                    }
+                                    trigger: 'item'
                                 },
-                                grid: {
-                                    left: '3%',
-                                    right: '4%',
-                                    bottom: '3%',
-                                    containLabel: true
+                                legend: {
+                                    orient: 'vertical',
+                                    left: 'left'
                                 },
-                                xAxis: [
-                                    {
-                                        type: 'category',
-                                        data: Object.keys(portData),
-                                        axisTick: {
-                                            alignWithLabel: true
-                                        }
-                                    }
-                                ],
-                                yAxis: [
-                                    {
-                                        type: 'value'
-                                    }
-                                ],
                                 series: [
                                     {
                                         name: '端口数量',
-                                        type: 'bar',
-                                        barWidth: '60%',
-                                        data: Object.values(portData)
+                                        type: 'pie',
+                                        radius: '50%',
+                                        data: Object.entries(detailData.port_distribution || {}).map(([port, count]) => ({
+                                            name: port,
+                                            value: count
+                                        })),
+                                        emphasis: {
+                                            itemStyle: {
+                                                shadowBlur: 10,
+                                                shadowOffsetX: 0,
+                                                shadowColor: 'rgba(0, 0, 0, 0.5)'
+                                            }
+                                        }
                                     }
                                 ]
                             };
@@ -592,13 +661,6 @@ layui.use(['form', 'table', 'layer'], function(){
                             
                             // 绘制服务分布图
                             var serviceChart = echarts.init(document.getElementById('service-chart'));
-                            var serviceData = {};
-                            detailData.open_ports.forEach(function(port){
-                                var service = detailData.service_info[port] || {};
-                                var name = service.name || 'unknown';
-                                serviceData[name] = (serviceData[name] || 0) + 1;
-                            });
-                            
                             var serviceOption = {
                                 title: {
                                     text: '服务分布'
@@ -610,7 +672,7 @@ layui.use(['form', 'table', 'layer'], function(){
                                 legend: {
                                     orient: 'vertical',
                                     left: 10,
-                                    data: Object.keys(serviceData)
+                                    data: Object.keys(detailData.service_distribution || {})
                                 },
                                 series: [
                                     {
@@ -632,9 +694,10 @@ layui.use(['form', 'table', 'layer'], function(){
                                         labelLine: {
                                             show: false
                                         },
-                                        data: Object.keys(serviceData).map(function(key){
-                                            return {name: key, value: serviceData[key]};
-                                        })
+                                        data: Object.entries(detailData.service_distribution || {}).map(([service, count]) => ({
+                                            name: service || 'unknown',
+                                            value: count
+                                        }))
                                     }
                                 ]
                             };

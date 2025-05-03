@@ -94,6 +94,8 @@ urlpatterns = [
     path('api/portscan/history/', PortScanApiView.as_view(), name='portscan_history'),
     path('api/portscan/history/<int:scan_id>/', PortScanApiView.as_view(), name='portscan_history_detail'),
     path('api/portscan/report/', csrf_exempt(PortScanApiView.as_view()), name='portscan_report'),
+    path('api/portscan/status/<int:scan_id>/', PortScanApiView.as_view(), name='portscan_status'),
+    path('api/portscan/save-results/', csrf_exempt(PortScanApiView.as_view()), name='portscan_save_results'),
     
     # 目录扫描页面
     path('dirscan/', DirScanView.as_view(), name='dirscan'),
