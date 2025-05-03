@@ -81,10 +81,11 @@
 ## 安装部署
 
 ### 环境要求
-- Python 3.8+
-- Django 4.2+
-- MySQL 5.7+
+- Python 
+- Django
+- Sqlite3
 - Docker & Docker Compose (可选)
+
 
 ### 安装方式一：传统部署
 
