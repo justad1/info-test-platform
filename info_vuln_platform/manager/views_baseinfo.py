@@ -63,12 +63,12 @@ class BaseInfoApiView(View):
     # 获取icp备案信息
     def get_icp(self, domain):
         params = {
-            "name": domain,  # 查询的域名
-            "type": "1"      # 类型参数
+            "domainName": domain,   # 查询的域名
+            "key":  'c2bc810f80a45c11cfaf46fe357e5b4f'       # 类型参数
         }
         try:
             # 发送GET请求
-            response = requests.get(url="https://api.leafone.cn/api/icp", params=params)
+            response = requests.get(url="http://v.juhe.cn/siteTools/app/NewDomain/query", params=params)
             
             # 检查HTTP状态码
             if response.status_code == 200:

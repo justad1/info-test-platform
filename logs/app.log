@@ -1,0 +1,81 @@
+INFO 2025-05-03 02:59:53,558 autoreload 645153 140443365054272 Watching for file changes with StatReloader
+INFO 2025-05-03 03:00:15,521 autoreload 645274 140136134375232 Watching for file changes with StatReloader
+INFO 2025-05-03 03:00:26,065 basehttp 645274 140136081143360 "GET /manager/portscan/ HTTP/1.1" 200 41404
+INFO 2025-05-03 03:00:26,634 views_portscan 645274 140136081143360 初始化端口扫描API，naabu工具路径: /root/projects/info-test-platform/info_vuln_platform/sectools/naabu/naabu
+INFO 2025-05-03 03:00:26,634 views_portscan 645274 140136081143360 naabu工具存在
+INFO 2025-05-03 03:00:26,640 basehttp 645274 140136081143360 "GET /manager/api/portscan/history/?page=1&limit=10 HTTP/1.1" 200 1828
+INFO 2025-05-03 03:00:42,001 views_portscan 645274 140136081143360 初始化端口扫描API，naabu工具路径: /root/projects/info-test-platform/info_vuln_platform/sectools/naabu/naabu
+INFO 2025-05-03 03:00:42,001 views_portscan 645274 140136081143360 naabu工具存在
+INFO 2025-05-03 03:00:42,003 views_portscan 645274 140136081143360 端口扫描请求参数: target=127.0.0.1, scan_type=tcp, ports=1-1000
+INFO 2025-05-03 03:00:42,015 views_portscan 645274 140135857387072 开始执行端口扫描任务: id=17, target=127.0.0.1
+DEBUG 2025-05-03 03:00:42,017 views_portscan 645274 140135857387072 完整扫描命令: /root/projects/info-test-platform/info_vuln_platform/sectools/naabu/naabu -host 127.0.0.1 -p 1-1000 -c 25 -timeout 1000000 -retries 3 -json
+INFO 2025-05-03 03:00:42,018 basehttp 645274 140136081143360 "POST /manager/api/portscan/ HTTP/1.1" 200 89
+INFO 2025-05-03 03:00:42,018 views_portscan 645274 140135857387072 执行扫描命令: /root/projects/info-test-platform/info_vuln_platform/sectools/naabu/naabu -host 127.0.0.1 -p 1-1000 -c 25 -timeout 1000000 -retries 3 -json
+INFO 2025-05-03 03:00:42,019 views_portscan 645274 140135857387072 工作目录: /root/projects/info-test-platform/info_vuln_platform/sectools/naabu
+INFO 2025-05-03 03:00:47,018 views_portscan 645274 140135857387072 命令执行结果: 返回码=0
+ERROR 2025-05-03 03:00:47,018 views_portscan 645274 140135857387072 命令错误输出: 
+                  __
+  ___  ___  ___ _/ /  __ __
+ / _ \/ _ \/ _ \/ _ \/ // /
+/_//_/\_,_/\_,_/_.__/\_,_/
+
+		projectdiscovery.io
+
+[[34mINF[0m] Current naabu version 2.3.4 ([92mlatest[0m)
+[[34mINF[0m] Running CONNECT scan with non root privileges
+[[34mINF[0m] Found 1 ports on host 127.0.0.1 (127.0.0.1)
+
+INFO 2025-05-03 03:00:47,018 views_portscan 645274 140135857387072 命令标准输出长度: 103
+DEBUG 2025-05-03 03:00:47,018 views_portscan 645274 140135857387072 naabu执行成功，开始解析结果: output_length=103
+INFO 2025-05-03 03:00:47,024 views_portscan 645274 140135857387072 扫描完成: 目标=127.0.0.1, 开放端口数=0
+INFO 2025-05-03 03:01:20,304 views_portscan 645274 140135857387072 初始化端口扫描API，naabu工具路径: /root/projects/info-test-platform/info_vuln_platform/sectools/naabu/naabu
+INFO 2025-05-03 03:01:20,305 views_portscan 645274 140135857387072 naabu工具存在
+INFO 2025-05-03 03:01:20,306 basehttp 645274 140135857387072 "POST /manager/api/portscan/ HTTP/1.1" 200 104
+INFO 2025-05-03 03:01:54,472 autoreload 645274 140136134375232 /root/projects/info-test-platform/info_vuln_platform/manager/views_portscan.py changed, reloading.
+INFO 2025-05-03 03:01:55,290 autoreload 645657 139745378453312 Watching for file changes with StatReloader
+INFO 2025-05-03 03:02:11,450 autoreload 645745 140717214840640 Watching for file changes with StatReloader
+INFO 2025-05-03 03:02:14,910 views_portscan 645745 140717087258176 初始化端口扫描API，naabu工具路径: /root/projects/info-test-platform/info_vuln_platform/sectools/naabu/naabu
+INFO 2025-05-03 03:02:14,910 views_portscan 645745 140717087258176 naabu工具存在
+INFO 2025-05-03 03:02:14,911 basehttp 645745 140717087258176 "POST /manager/api/portscan/ HTTP/1.1" 200 104
+WARNING 2025-05-03 03:02:58,584 log 645745 140717087258176 Not Found: /manager/api/login/
+WARNING 2025-05-03 03:02:58,585 basehttp 645745 140717087258176 "POST /manager/api/login/ HTTP/1.1" 404 21274
+INFO 2025-05-03 03:03:13,357 views_portscan 645745 140717087258176 初始化端口扫描API，naabu工具路径: /root/projects/info-test-platform/info_vuln_platform/sectools/naabu/naabu
+INFO 2025-05-03 03:03:13,357 views_portscan 645745 140717087258176 naabu工具存在
+INFO 2025-05-03 03:03:13,360 views_portscan 645745 140717087258176 端口扫描请求参数: target=127.0.0.1, scan_type=tcp, ports=1-1000
+INFO 2025-05-03 03:03:13,378 views_portscan 645745 140717078865472 开始执行端口扫描任务: id=18, target=127.0.0.1
+DEBUG 2025-05-03 03:03:13,379 views_portscan 645745 140717078865472 完整扫描命令: /root/projects/info-test-platform/info_vuln_platform/sectools/naabu/naabu -host 127.0.0.1 -p 1-1000 -c 25 -timeout 1000000 -retries 3 -json
+INFO 2025-05-03 03:03:13,379 views_portscan 645745 140717078865472 执行扫描命令: /root/projects/info-test-platform/info_vuln_platform/sectools/naabu/naabu -host 127.0.0.1 -p 1-1000 -c 25 -timeout 1000000 -retries 3 -json
+INFO 2025-05-03 03:03:13,379 views_portscan 645745 140717078865472 工作目录: /root/projects/info-test-platform/info_vuln_platform/sectools/naabu
+INFO 2025-05-03 03:03:13,380 basehttp 645745 140717087258176 "POST /manager/api/portscan/ HTTP/1.1" 200 89
+INFO 2025-05-03 03:03:18,474 views_portscan 645745 140717078865472 命令执行结果: 返回码=0
+ERROR 2025-05-03 03:03:18,474 views_portscan 645745 140717078865472 命令错误输出: 
+                  __
+  ___  ___  ___ _/ /  __ __
+ / _ \/ _ \/ _ \/ _ \/ // /
+/_//_/\_,_/\_,_/_.__/\_,_/
+
+		projectdiscovery.io
+
+[[34mINF[0m] Current naabu version 2.3.4 ([92mlatest[0m)
+[[34mINF[0m] Running CONNECT scan with non root privileges
+[[34mINF[0m] Found 1 ports on host 127.0.0.1 (127.0.0.1)
+
+INFO 2025-05-03 03:03:18,474 views_portscan 645745 140717078865472 命令标准输出长度: 103
+DEBUG 2025-05-03 03:03:18,474 views_portscan 645745 140717078865472 naabu执行成功，开始解析结果: output_length=103
+DEBUG 2025-05-03 03:03:18,474 views_portscan 645745 140717078865472 naabu原始输出: {"ip":"127.0.0.1","timestamp":"2025-05-03T03:03:14.35187534Z","port":222,"protocol":"tcp","tls":false}
+
+INFO 2025-05-03 03:03:18,474 views_portscan 645745 140717078865472 找到开放端口: 127.0.0.1:222
+INFO 2025-05-03 03:03:18,474 views_portscan 645745 140717078865472 解析完成: 共找到 1 个开放端口, 端口分布: {'222': 1}, 服务分布: {}
+INFO 2025-05-03 03:03:18,482 views_portscan 645745 140717078865472 扫描完成: 目标=127.0.0.1, 开放端口数=1
+INFO 2025-05-03 03:04:06,669 views_portscan 645745 140717087258176 初始化端口扫描API，naabu工具路径: /root/projects/info-test-platform/info_vuln_platform/sectools/naabu/naabu
+INFO 2025-05-03 03:04:06,669 views_portscan 645745 140717087258176 naabu工具存在
+INFO 2025-05-03 03:04:06,671 views_portscan 645745 140717087258176 端口扫描请求参数: target=http://47.108.50.94:8002/, scan_type=tcp, ports=1-1000
+INFO 2025-05-03 03:04:06,672 basehttp 645745 140717087258176 "POST /manager/api/portscan/ HTTP/1.1" 200 92
+INFO 2025-05-03 03:04:22,391 views_portscan 645745 140717087258176 初始化端口扫描API，naabu工具路径: /root/projects/info-test-platform/info_vuln_platform/sectools/naabu/naabu
+INFO 2025-05-03 03:04:22,391 views_portscan 645745 140717087258176 naabu工具存在
+INFO 2025-05-03 03:04:22,393 views_portscan 645745 140717087258176 端口扫描请求参数: target=47.108.50.94, scan_type=tcp, ports=1-1000
+INFO 2025-05-03 03:04:22,410 views_portscan 645745 140717078865472 开始执行端口扫描任务: id=19, target=47.108.50.94
+INFO 2025-05-03 03:04:22,411 basehttp 645745 140717087258176 "POST /manager/api/portscan/ HTTP/1.1" 200 89
+DEBUG 2025-05-03 03:04:22,411 views_portscan 645745 140717078865472 完整扫描命令: /root/projects/info-test-platform/info_vuln_platform/sectools/naabu/naabu -host 47.108.50.94 -p 1-1000 -c 25 -timeout 1000000 -retries 3 -json
+INFO 2025-05-03 03:04:22,412 views_portscan 645745 140717078865472 执行扫描命令: /root/projects/info-test-platform/info_vuln_platform/sectools/naabu/naabu -host 47.108.50.94 -p 1-1000 -c 25 -timeout 1000000 -retries 3 -json
+INFO 2025-05-03 03:04:22,412 views_portscan 645745 140717078865472 工作目录: /root/projects/info-test-platform/info_vuln_platform/sectools/naabu
