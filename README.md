@@ -144,6 +144,8 @@ docker-compose exec web python manage.py createsuperuser
 
 4. 访问服务
 浏览器访问 http://localhost:8000
+username：admin
+password：admin123
 
 注意：使用 Docker 部署时，数据库使用的是SQLite3，数据将存储在容器内的/app/db.sqlite3文件中。如果需要持久化数据，该文件已通过卷挂载映射到宿主机上。
 
