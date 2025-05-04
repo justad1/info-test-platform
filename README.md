@@ -81,9 +81,9 @@
 ## 安装部署
 
 ### 环境要求
-- Python 
+- Python 3.9+
 - Django
-- Sqlite3
+- SQLite3
 - Docker & Docker Compose (可选)
 
 
@@ -145,7 +145,7 @@ docker-compose exec web python manage.py createsuperuser
 4. 访问服务
 浏览器访问 http://localhost:8000
 
-注意：使用 Docker 部署时，所有配置都在 docker-compose.yml 文件中，无需手动配置数据库。
+注意：使用 Docker 部署时，数据库使用的是SQLite3，数据将存储在容器内的/app/db.sqlite3文件中。如果需要持久化数据，该文件已通过卷挂载映射到宿主机上。
 
 ## 使用说明
 
@@ -237,6 +237,13 @@ docker-compose exec web python manage.py createsuperuser
 4. 请合理设置扫描线程数，避免对目标系统造成过大负载
 
 ## 更新日志
+
+### 2024-06-01
+#### 改进
+- 更新了Docker配置，移除MySQL服务
+- 将数据库从MySQL切换为SQLite3
+- 简化了Docker部署方式
+- 更新了部署文档
 
 ### 2024-03-05
 #### 新增功能

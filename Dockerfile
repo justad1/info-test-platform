@@ -12,7 +12,6 @@ ENV PYTHONUNBUFFERED=1
 RUN apt-get update \
     && apt-get install -y --no-install-recommends \
         gcc \
-        default-libmysqlclient-dev \
         nmap \
         pkg-config \
     && rm -rf /var/lib/apt/lists/*
@@ -23,8 +22,11 @@ COPY . /app/
 # 安装Python依赖
 RUN pip install --no-cache-dir -r requirements.txt
 
+# 运行数据库迁移
+RUN python manage.py migrate
+
 # 暴露端口
 EXPOSE 8000
 
 # 启动命令
-CMD ["python", "manage.py", "runserver", "0.0.0.0:8000"] 
+CMD ["python", "manage.py", "runserver", "0.0.0.0:8000"]
