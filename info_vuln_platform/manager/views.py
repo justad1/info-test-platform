@@ -605,13 +605,6 @@ class UserLogApiView(View):
     @method_decorator(login_required)
     def get(self, request):
         """获取用户日志列表"""
-        # 检查是否是管理员
-        if not request.session.get('is_admin', False):
-            return JsonResponse({
-                'code': 403,
-                'message': '权限不足，只有管理员可以访问用户日志'
-            }, status=403)
-        
         # 获取查询参数
         page = int(request.GET.get('page', 1))
         limit = int(request.GET.get('limit', 10))
@@ -619,12 +612,26 @@ class UserLogApiView(View):
         action = request.GET.get('action', '')
         start_date = request.GET.get('start_date', '')
         end_date = request.GET.get('end_date', '')
+        user_id = request.GET.get('user_id', '')
         
         # 构建查询条件
         query = {}
-        if username:
-            users = User.objects.filter(username__icontains=username)
-            query['user__in'] = users
+        
+        # 检查用户权限
+        is_admin = request.session.get('is_admin', False)
+        current_user_id = request.session.get('user_id')
+        
+        # 管理员可以查看所有日志，普通用户只能查看自己的日志
+        if not is_admin:
+            query['user_id'] = current_user_id
+        else:
+            # 管理员根据条件筛选
+            if username:
+                users = User.objects.filter(username__icontains=username)
+                query['user__in'] = users
+            if user_id:
+                query['user_id'] = user_id
+        
         if action:
             query['action__icontains'] = action
         if start_date:
@@ -1892,3 +1899,46 @@ def notice_api(request):
             'code': 500,
             'message': f'获取系统公告失败：{str(e)}'
         })
+
+# 当前用户日志API
+class CurrentUserLogApiView(View):
+    """当前用户日志API，提供获取当前用户最新操作日志的功能"""
+    
+    @method_decorator(login_required)
+    def get(self, request):
+        """获取当前用户最新操作日志"""
+        try:
+            # 获取当前用户ID
+            user_id = request.session.get('user_id')
+            if not user_id:
+                return JsonResponse({
+                    'code': 401,
+                    'message': '未登录或会话已过期'
+                }, status=401)
+            
+            # 获取查询参数 - 默认获取最新的5条日志
+            limit = int(request.GET.get('limit', 5))
+            
+            # 查询当前用户的最新日志
+            logs = UserLog.objects.filter(user_id=user_id).order_by('-created_at')[:limit]
+            
+            # 构建返回数据
+            log_list = []
+            for log in logs:
+                log_list.append({
+                    'id': log.id,
+                    'action': log.action,
+                    'details': log.details,
+                    'created_at': log.created_at.strftime('%Y-%m-%d %H:%M:%S')
+                })
+            
+            return JsonResponse({
+                'code': 200,
+                'message': '获取成功',
+                'data': log_list
+            })
+        except Exception as e:
+            return JsonResponse({
+                'code': 500,
+                'message': f'服务器错误: {str(e)}'
+            }, status=500)

@@ -241,24 +241,51 @@ layui.use(['jquery', 'layer'], function(){
     var loginDays = Math.floor((now - firstLogin) / (1000 * 60 * 60 * 24));
     $('#login-days').text(loginDays);
     
-    // 获取系统公告
+    // 获取系统公告和用户操作日志
     $.ajax({
         url: '/manager/api/notices/',
         type: 'GET',
         success: function(res) {
             if (res.code === 200 && res.notices) {
                 var html = '';
+                // 添加系统公告
                 res.notices.forEach(function(notice) {
                     html += `
                     <li class="layui-timeline-item">
                         <i class="layui-icon layui-timeline-axis">&#xe63f;</i>
                         <div class="layui-timeline-content layui-text">
-                            <h3 class="layui-timeline-title">${notice.title}</h3>
+                            <h3 class="layui-timeline-title">${notice.title} <span class="layui-badge layui-bg-green">公告</span></h3>
                             <p>${notice.content}</p>
                         </div>
                     </li>`;
                 });
-                $('#notice-list').html(html);
+                
+                // 获取用户操作日志
+                $.ajax({
+                    url: '/manager/api/current_user_logs/',
+                    type: 'GET',
+                    success: function(logRes) {
+                        if (logRes.code === 200 && logRes.data && logRes.data.length > 0) {
+                            // 添加用户操作日志
+                            logRes.data.forEach(function(log) {
+                                html += `
+                                <li class="layui-timeline-item">
+                                    <i class="layui-icon layui-timeline-axis">&#xe63f;</i>
+                                    <div class="layui-timeline-content layui-text">
+                                        <h3 class="layui-timeline-title">${log.action} <span class="layui-badge layui-bg-gray">${log.created_at}</span></h3>
+                                        <p>${log.details || '无详细信息'}</p>
+                                    </div>
+                                </li>`;
+                            });
+                        }
+                        // 更新公告列表
+                        $('#notice-list').html(html);
+                    },
+                    error: function() {
+                        // 如果获取日志失败，仍然显示公告
+                        $('#notice-list').html(html);
+                    }
+                });
             }
         }
     });

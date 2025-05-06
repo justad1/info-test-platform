@@ -1,0 +1,110 @@
+{
+  "target": "example.com",
+  "timestamp": "2025-05-04T23:44:22.054518",
+  "port_scan_results": [
+    {
+      "concurrency": 10,
+      "execution_time": 1.1362864971160889,
+      "open_ports_count": 0,
+      "success": false
+    },
+    {
+      "concurrency": 25,
+      "execution_time": 0.8958663940429688,
+      "open_ports_count": 0,
+      "success": false
+    },
+    {
+      "concurrency": 50,
+      "execution_time": 1.2077412605285645,
+      "open_ports_count": 0,
+      "success": false
+    },
+    {
+      "concurrency": 100,
+      "execution_time": 2.5947444438934326,
+      "open_ports_count": 0,
+      "success": false
+    },
+    {
+      "concurrency": 150,
+      "execution_time": 0.924706220626831,
+      "open_ports_count": 0,
+      "success": false
+    }
+  ],
+  "subdomain_scan_results": [
+    {
+      "concurrency": 10,
+      "execution_time": 6.078455924987793,
+      "subdomains_count": 469,
+      "success": true
+    },
+    {
+      "concurrency": 25,
+      "execution_time": 6.566568851470947,
+      "subdomains_count": 469,
+      "success": true
+    },
+    {
+      "concurrency": 50,
+      "execution_time": 5.712885141372681,
+      "subdomains_count": 469,
+      "success": true
+    },
+    {
+      "concurrency": 100,
+      "execution_time": 32.93497276306152,
+      "subdomains_count": 469,
+      "success": true
+    },
+    {
+      "concurrency": 200,
+      "execution_time": 34.27937364578247,
+      "subdomains_count": 469,
+      "success": true
+    }
+  ],
+  "vulnerability_scan_results": [
+    {
+      "concurrency": 10,
+      "execution_time": 62.13203191757202,
+      "findings_count": 1,
+      "requests": 0,
+      "requests_per_second": 0.0,
+      "success": true
+    },
+    {
+      "concurrency": 25,
+      "execution_time": 58.80123972892761,
+      "findings_count": 2,
+      "requests": 0,
+      "requests_per_second": 0.0,
+      "success": true
+    },
+    {
+      "concurrency": 50,
+      "execution_time": 26.078164100646973,
+      "findings_count": 2,
+      "requests": 0,
+      "requests_per_second": 0.0,
+      "success": true
+    },
+    {
+      "concurrency": 100,
+      "execution_time": 17.369136333465576,
+      "findings_count": 3,
+      "requests": 0,
+      "requests_per_second": 0.0,
+      "success": true
+    },
+    {
+      "concurrency": 200,
+      "execution_time": 23.09518790245056,
+      "findings_count": 2,
+      "requests": 0,
+      "requests_per_second": 0.0,
+      "success": true
+    }
+  ]
+}

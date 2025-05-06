@@ -35,6 +35,8 @@ urlpatterns = [
     
     # 用户日志API
     path('api/logs/', views.UserLogApiView.as_view(), name='user_logs'),
+    # 当前用户日志API
+    path('api/current_user_logs/', views.CurrentUserLogApiView.as_view(), name='current_user_logs'),
     
     # 个人信息页面
     path('profile/', views.ProfileView.as_view(), name='profile'),

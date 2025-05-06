@@ -1,0 +1,84 @@
+{
+  "target": "127.0.0.1",
+  "timestamp": "2025-05-04T23:54:34.187388",
+  "port_scan_results": [
+    {
+      "concurrency": 10,
+      "execution_time": 1.9376933574676514,
+      "open_ports_count": 0,
+      "success": false
+    },
+    {
+      "concurrency": 25,
+      "execution_time": 1.1674950122833252,
+      "open_ports_count": 0,
+      "success": false
+    },
+    {
+      "concurrency": 50,
+      "execution_time": 0.9047098159790039,
+      "open_ports_count": 0,
+      "success": false
+    }
+  ],
+  "subdomain_scan_results": [
+    {
+      "concurrency": 5,
+      "execution_time": 5.721849203109741,
+      "subdomains_count": 0,
+      "success": true
+    },
+    {
+      "concurrency": 10,
+      "execution_time": 5.723634719848633,
+      "subdomains_count": 0,
+      "success": true
+    },
+    {
+      "concurrency": 20,
+      "execution_time": 6.579514026641846,
+      "subdomains_count": 0,
+      "success": true
+    },
+    {
+      "concurrency": 30,
+      "execution_time": 8.837334871292114,
+      "subdomains_count": 0,
+      "success": true
+    }
+  ],
+  "vulnerability_scan_results": [
+    {
+      "concurrency": 5,
+      "execution_time": 5.8100361824035645,
+      "findings_count": 0,
+      "requests": 0,
+      "requests_per_second": 0.0,
+      "success": true
+    },
+    {
+      "concurrency": 10,
+      "execution_time": 2.899731159210205,
+      "findings_count": 0,
+      "requests": 0,
+      "requests_per_second": 0.0,
+      "success": true
+    },
+    {
+      "concurrency": 20,
+      "execution_time": 7.614516019821167,
+      "findings_count": 0,
+      "requests": 0,
+      "requests_per_second": 0.0,
+      "success": true
+    },
+    {
+      "concurrency": 30,
+      "execution_time": 5.230297088623047,
+      "findings_count": 0,
+      "requests": 0,
+      "requests_per_second": 0.0,
+      "success": true
+    }
+  ]
+}
