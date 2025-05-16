@@ -1,0 +1,68 @@
+{
+  "target": "http://111.194.253.124:9002/",
+  "timestamp": "2025-05-16T18:08:50.112771",
+  "port_scan_results": [
+    {
+      "concurrency": 5,
+      "execution_time": 60,
+      "open_ports_count": 0,
+      "success": false
+    },
+    {
+      "concurrency": 10,
+      "execution_time": 60,
+      "open_ports_count": 0,
+      "success": false
+    }
+  ],
+  "web_fingerprint_results": [
+    {
+      "concurrency": 5,
+      "execution_time": 7.519440174102783,
+      "fingerprints_count": 0,
+      "fingerprints": [],
+      "success": true
+    },
+    {
+      "concurrency": 10,
+      "execution_time": 8.026258945465088,
+      "fingerprints_count": 0,
+      "fingerprints": [],
+      "success": true
+    }
+  ],
+  "directory_scan_results": [
+    {
+      "concurrency": 10,
+      "execution_time": 0.10227727890014648,
+      "directories_count": 0,
+      "directories": [],
+      "success": true
+    },
+    {
+      "concurrency": 20,
+      "execution_time": 0.1034841537475586,
+      "directories_count": 0,
+      "directories": [],
+      "success": true
+    }
+  ],
+  "vulnerability_scan_results": [
+    {
+      "concurrency": 10,
+      "execution_time": 11.026400089263916,
+      "findings_count": 0,
+      "findings_summary": [],
+      "requests_per_second": 0.0,
+      "success": true
+    },
+    {
+      "concurrency": 20,
+      "execution_time": 10.38755178451538,
+      "findings_count": 0,
+      "findings_summary": [],
+      "requests_per_second": 0.0,
+      "success": true
+    }
+  ]
+}

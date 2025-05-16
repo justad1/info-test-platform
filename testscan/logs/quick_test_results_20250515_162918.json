@@ -1,0 +1,21 @@
+{
+  "target": "3.227.134.165",
+  "timestamp": "2025-05-15T16:29:18.709500",
+  "total_execution_time": 309.2560374736786,
+  "port_scan": {
+    "success": false,
+    "execution_time": 120
+  },
+  "subdomain_scan": {
+    "success": true,
+    "execution_time": 7.441347599029541
+  },
+  "fingerprint_scan": {
+    "success": true,
+    "execution_time": 3.8117377758026123
+  },
+  "vulnerability_scan": {
+    "success": true,
+    "execution_time": 177.8778989315033
+  }
+}

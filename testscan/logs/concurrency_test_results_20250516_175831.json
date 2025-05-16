@@ -1,0 +1,88 @@
+{
+  "target": "http://111.194.253.124:9002/",
+  "timestamp": "2025-05-16T17:58:31.406981",
+  "port_scan_results": [
+    {
+      "concurrency": 5,
+      "execution_time": 1.6037750244140625,
+      "open_ports_count": 0,
+      "success": false
+    },
+    {
+      "concurrency": 10,
+      "execution_time": 1.2398560047149658,
+      "open_ports_count": 0,
+      "success": false
+    }
+  ],
+  "web_fingerprint_results": [
+    {
+      "concurrency": 5,
+      "execution_time": 8.985017538070679,
+      "fingerprints_count": 0,
+      "fingerprints": [],
+      "success": true
+    },
+    {
+      "concurrency": 10,
+      "execution_time": 7.05397367477417,
+      "fingerprints_count": 0,
+      "fingerprints": [],
+      "success": true
+    }
+  ],
+  "directory_scan_results": [
+    {
+      "concurrency": 10,
+      "execution_time": 49.92231488227844,
+      "directories_count": 0,
+      "directories": [],
+      "success": true
+    },
+    {
+      "concurrency": 20,
+      "execution_time": 26.979002475738525,
+      "directories_count": 0,
+      "directories": [],
+      "success": true
+    }
+  ],
+  "vulnerability_scan_results": [
+    {
+      "concurrency": 10,
+      "execution_time": 66.88932156562805,
+      "findings_count": 8,
+      "findings_summary": [
+        "WAF Detection",
+        "WAF Detection",
+        "Wappalyzer Technology Detection",
+        "Wappalyzer Technology Detection",
+        "Wappalyzer Technology Detection",
+        "Wappalyzer Technology Detection",
+        "Apache Detection",
+        "PHP Detect"
+      ],
+      "requests": 0,
+      "requests_per_second": 0.0,
+      "success": true
+    },
+    {
+      "concurrency": 20,
+      "execution_time": 90.42897725105286,
+      "findings_count": 8,
+      "findings_summary": [
+        "WAF Detection",
+        "WAF Detection",
+        "Wappalyzer Technology Detection",
+        "Wappalyzer Technology Detection",
+        "Wappalyzer Technology Detection",
+        "Wappalyzer Technology Detection",
+        "Apache Detection",
+        "PHP Detect"
+      ],
+      "requests": 0,
+      "requests_per_second": 0.0,
+      "success": true
+    }
+  ]
+}

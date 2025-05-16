@@ -144,7 +144,9 @@ docker-compose exec web python manage.py createsuperuser
 
 4. 访问服务
 浏览器访问 http://localhost:8000
+
 username：admin
+
 password：admin123
 
 注意：使用 Docker 部署时，数据库使用的是SQLite3，数据将存储在容器内的/app/db.sqlite3文件中。如果需要持久化数据，该文件已通过卷挂载映射到宿主机上。
@@ -240,14 +242,14 @@ password：admin123
 
 ## 更新日志
 
-### 2024-06-01
+### 2025-04-01
 #### 改进
 - 更新了Docker配置，移除MySQL服务
 - 将数据库从MySQL切换为SQLite3
 - 简化了Docker部署方式
 - 更新了部署文档
 
-### 2024-03-05
+### 2025-03-05
 #### 新增功能
 - 添加 Docker 部署支持
 - 优化项目结构
@@ -259,7 +261,7 @@ password：admin123
 - 更新部署说明文档
 - 添加 Docker 部署方式的详细说明
 
-### 2024-03-04
+### 2025-01-30
 
 #### 新增功能
 - 集成Nuclei漏洞扫描工具
@@ -291,7 +293,7 @@ password：admin123
 4. 保护好自己的账号密码
 5. 定期备份重要数据
 
-### v1.0.0 (2024-03-04)
+### v1.0.0 (2024-12-30)
 - 实现基础用户管理功能
 - 实现基础信息查询功能
 - 实现端口扫描功能

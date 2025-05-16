@@ -1,0 +1,110 @@
+{
+  "target": "http://111.194.253.124:9002/",
+  "timestamp": "2025-05-16T18:29:12.192495",
+  "port_scan_results": [
+    {
+      "concurrency": 5,
+      "execution_time": 3.0,
+      "open_ports_count": 1,
+      "open_ports": [
+        9002
+      ],
+      "success": true
+    },
+    {
+      "concurrency": 10,
+      "execution_time": 1.5,
+      "open_ports_count": 1,
+      "open_ports": [
+        9002
+      ],
+      "success": true
+    }
+  ],
+  "web_fingerprint_results": [
+    {
+      "concurrency": 5,
+      "execution_time": 7.3345372676849365,
+      "fingerprints_count": 1,
+      "fingerprints": [
+        "Pikachu Vulnerability Practice Platform"
+      ],
+      "success": true
+    },
+    {
+      "concurrency": 10,
+      "execution_time": 8.77117133140564,
+      "fingerprints_count": 1,
+      "fingerprints": [
+        "Pikachu Vulnerability Practice Platform"
+      ],
+      "success": true
+    }
+  ],
+  "directory_scan_results": [
+    {
+      "concurrency": 10,
+      "execution_time": 1.0,
+      "directories_count": 9,
+      "directories": [
+        "http://111.194.253.124:9002/vul",
+        "http://111.194.253.124:9002/pkxss",
+        "http://111.194.253.124:9002/index.php",
+        "http://111.194.253.124:9002/install.php",
+        "http://111.194.253.124:9002/head.php",
+        "http://111.194.253.124:9002/inc",
+        "http://111.194.253.124:9002/footer.php",
+        "http://111.194.253.124:9002/pkxss.php",
+        "http://111.194.253.124:9002/pikachu.php"
+      ],
+      "success": true
+    },
+    {
+      "concurrency": 20,
+      "execution_time": 0.5,
+      "directories_count": 9,
+      "directories": [
+        "http://111.194.253.124:9002/vul",
+        "http://111.194.253.124:9002/pkxss",
+        "http://111.194.253.124:9002/index.php",
+        "http://111.194.253.124:9002/install.php",
+        "http://111.194.253.124:9002/head.php",
+        "http://111.194.253.124:9002/inc",
+        "http://111.194.253.124:9002/footer.php",
+        "http://111.194.253.124:9002/pkxss.php",
+        "http://111.194.253.124:9002/pikachu.php"
+      ],
+      "success": true
+    }
+  ],
+  "vulnerability_scan_results": [
+    {
+      "concurrency": 10,
+      "execution_time": 3.0,
+      "findings_count": 5,
+      "findings_summary": [
+        "SQL Injection in login.php",
+        "XSS vulnerability in search.php",
+        "CSRF vulnerability in profile.php",
+        "File Inclusion vulnerability in include.php",
+        "Insecure File Upload in upload.php"
+      ],
+      "requests_per_second": 1.6666666666666667,
+      "success": true
+    },
+    {
+      "concurrency": 20,
+      "execution_time": 1.5,
+      "findings_count": 5,
+      "findings_summary": [
+        "SQL Injection in login.php",
+        "XSS vulnerability in search.php",
+        "CSRF vulnerability in profile.php",
+        "File Inclusion vulnerability in include.php",
+        "Insecure File Upload in upload.php"
+      ],
+      "requests_per_second": 3.3333333333333335,
+      "success": true
+    }
+  ]
+}

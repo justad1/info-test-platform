@@ -1,0 +1,21 @@
+{
+  "target": "127.0.0.1",
+  "timestamp": "2025-05-15T16:18:53.456454",
+  "total_execution_time": 23.2550208568573,
+  "port_scan": {
+    "success": true,
+    "execution_time": 3.6328330039978027
+  },
+  "subdomain_scan": {
+    "success": true,
+    "execution_time": 13.328774213790894
+  },
+  "fingerprint_scan": {
+    "success": true,
+    "execution_time": 4.072041988372803
+  },
+  "vulnerability_scan": {
+    "success": true,
+    "execution_time": 2.2195892333984375
+  }
+}
