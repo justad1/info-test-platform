@@ -64,7 +64,7 @@ class BaseInfoApiView(View):
     def get_icp(self, domain):
         params = {
             "domainName": domain,   # 查询的域名
-            "key":  'c2bc810f80a45c11cfaf46fe357e5b4f'       # 类型参数
+            "key":  'your_key'       # 类型参数
         }
         try:
             # 发送GET请求
